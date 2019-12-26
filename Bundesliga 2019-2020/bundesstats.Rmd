@@ -1,0 +1,109 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "10/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Packages
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse, polite, scales, ggimage, ggforce,
+               understatr,
+               rvest, glue, extrafont, ggrepel, magick, ggtext)
+loadfonts()
+```
+
+# Bundesliga
+
+```{r}
+bundesmeta <- get_leagues_meta()
+bundesliga1920 <- get_league_teams_stats("Bundesliga", 2019)
+```
+
+```{r}
+bundesliga1920$team_name %>% 
+  unique() %>% 
+  str_replace_all(., " ", "_")
+```
+
+
+```{r}
+bundesliga1920 %>% 
+  group_by(team_name) %>% 
+  mutate(sumxPts = sum(xpts),
+         sumPoints = sum(pts)) %>% 
+  ungroup() %>% 
+  select(team_name, sumxPts, sumPoints) %>% 
+  unique() %>% 
+  arrange(desc(sumxPts)) %>% 
+  ggplot(aes(sumxPts, sumPoints, group = team_name)) +
+  geom_point() +
+  geom_text_repel(aes(label = team_name)) +
+  geom_abline() +
+  theme_minimal()
+
+
+bundesliga1920 %>% 
+  group_by(team_name) %>% 
+  mutate(sumxPts = sum(xpts),
+         sumPoints = sum(pts),
+         games = n(),
+         ppg = sumPoints / games) %>% 
+  ungroup() %>% 
+  select(team_name, ppg) %>% 
+  unique() %>% 
+  arrange(desc(ppg))
+
+bundesliga1920 %>% 
+  group_by(team_name) %>% 
+  mutate(sumxPts = sum(xpts),
+         sumPoints = sum(pts),
+         games = n(),
+         ppg = sumPoints / games,
+         sumConceded = sum(missed),
+         sumxGConceded = sum(npxGA),
+         concededxGratio = sumConceded / sumxGConceded) %>% 
+  ungroup() %>% 
+  select(team_name, sumConceded, sumxGConceded, concededxGratio) %>% 
+  unique() %>% 
+  ggplot(aes(x = sumxGConceded, y = concededxGratio)) +
+  geom_point() +
+  geom_label_repel(aes(label = team_name)) +
+  scale_x_reverse() +
+  scale_y_reverse() + 
+  theme_minimal()
+```
+
+
+
+
+
+
+# Eintracht Frankfurt
+
+```{r}
+frankfurtstats <- get_team_players_stats("Eintracht Frankfurt", 2018)
+```
+
+```{r}
+glimpse(frankfurtstats)
+```
+
+
+```{r}
+frankfurtstats %>% 
+  filter(time >= 900) %>% 
+  mutate(shots90 = (shots / time) * 90,
+         xGperShot = xG / shots,
+         xG90 = (xG/time) * 90) %>% 
+  select(player_name, time, shots90, xGperShot, xG90) %>% 
+  ggplot(aes(xGperShot, shots90)) +
+  geom_point(aes(size = xG90)) +
+  geom_text(aes(label = player_name))
+```
+

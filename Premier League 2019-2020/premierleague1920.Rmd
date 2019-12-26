@@ -1,0 +1,451 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "10/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Packages
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse, polite, scales, ggimage, ggforce,
+               understatr,
+               jsonlite, xml2, qdapRegex, stringi, stringr,
+               rvest, glue, extrafont, ggrepel, magick, ggtext)
+loadfonts(quiet = TRUE)
+```
+
+# Premier League
+
+```{r}
+premierleague1920 <- get_league_teams_stats("EPL", 2018)
+```
+
+```{r}
+premierleagueklopp_raw <- map(c(2015:2019), 
+                          ~ get_league_teams_stats("EPL", .x)) %>% bind_rows()
+
+premierleagueklopp_clean <- premierleagueklopp_raw %>% 
+  bind_rows() %>% 
+  filter(team_name == "Liverpool") %>% 
+  mutate(game_num = row_number(),
+         manager = case_when(
+    game_num %in% c(1:8) ~ "Brendan Rodgers",
+    TRUE ~ "Jürgen Klopp")) %>% 
+  mutate(rollxpts = rolling_sum(xpts),
+         rollxG = rolling_sum(xG),
+         rollxGA = rolling_sum(xGA),
+         sumpts = cumsum(pts),
+         sumxpts = cumsum(xpts),
+         season = glue("{year}-{year+1}")) %>% 
+  group_by(season) %>% 
+  mutate(match_num = row_number()) %>% 
+  ungroup() %>% 
+  select(game_num, season, match_num, manager,
+         h_a, result, xG, scored, rollxG, 
+         xGA, rollxGA, missed, 
+         pts, xpts, sumpts, sumxpts, rollxpts)
+```
+
+```{r}
+saveRDS(premierleagueklopp_raw,
+        here::here("data/premierleague_1516_1920_results.RDS"))
+
+saveRDS(premierleagueklopp_clean, 
+        here::here("data/premierleague_klopp_results.RDS"))
+```
+
+```{r}
+premierleagueklopp_raw <- readRDS(here::here("data/premierleague_1516_1920_results.RDS"))
+
+premierleagueklopp_clean <- readRDS(here::here("data/premierleague_klopp_results.RDS"))
+```
+
+
+```{r}
+rolling_sum <- tibbletime::rollify(.f = mean, window = 5)
+
+lfc1920 <- premierleague1920 %>% 
+  filter(team_name == "Liverpool") %>% 
+  mutate(rollxpts = rolling_sum(xpts),
+         rollxG = rolling_sum(xG),
+         rollxGA = rolling_sum(xGA),
+         sumpts = cumsum(pts),
+         sumxpts = cumsum(xpts),
+         game_num = row_number(),
+         season = glue("{year}-{year+1}")) %>% 
+  select(game_num, season, h_a, result, xG, scored, rollxG, xGA, rollxGA,
+         missed, pts, xpts, 
+         sumpts, sumxpts, rollxpts)
+
+glimpse(lfc1920)
+```
+
+
+
+```{r}
+premierleagueklopp_clean %>% 
+  ggplot(aes(game_num, rollxpts)) +
+  geom_line() +
+  theme_minimal()
+
+premierleagueklopp_clean %>% 
+  ggplot(aes(game_num, xG)) +
+  geom_line() +
+  theme_minimal()
+
+premierleagueklopp_clean %>% 
+  ggplot(aes(game_num, rollxGA)) +
+  geom_line() +
+  theme_minimal()
+```
+
+
+
+
+```{r}
+coef(lm(rollxG ~ game_num, data = premierleagueklopp_clean))
+coef(lm(rollxGA ~ game_num, data = premierleagueklopp_clean))
+
+premierleagueklopp_clean %>% 
+  ggplot(aes(game_num)) +
+  geom_line(aes(y = rollxG, color = "rollxG"), size = 1.25) +
+  geom_line(aes(y = rollxGA, color = "rollxGA"), size = 1.25) +
+  geom_abline(intercept = 1.448527732, slope = 0.004819968,
+              color = "darkgreen") +
+  geom_abline(intercept = 1.071953995, slope = -0.001729413,
+              color = "red") +
+  scale_x_continuous(limits = c(0, NA),
+                     expand = c(0, 0),
+                     breaks = c(1, 38, 39, 76, 77, 114),
+                     labels = c("1", "38", "1", "38", "1", "38")) +
+  scale_y_continuous(breaks = scales::pretty_breaks()) +
+  scale_color_manual(values = c("rollxG" = "darkgreen", 
+                                "rollxGA" = "red"),
+                     labels = c("Rolling xG", "Rolling xGA"),
+                     name = "") +
+  labs(title = "Five-Game Rolling xG & xGA from 2015/2016 Season to Present",
+       subtitle = "",
+       caption = "",
+       x = "Games from Beginning of 2015/2016 Season",
+       y = "Expected Goals") +
+  theme_minimal() +
+  theme(legend.position = c(0.125, 0.95))
+```
+
+- divide by season along x-axis, labels in middle of season with `YEAR/YEAR`
+- vertical line separate seasons as well
+
+
+Goal difference <> xG difference
+
+```{r}
+rolling_mean <- tibbletime::rollify(.f = mean, window = 5)
+
+
+plklopp_clean <- premierleagueklopp_clean %>% 
+  mutate(GD = scored - missed, 
+         xGD = xG - xGA) %>% 
+  mutate(rollGD = rolling_mean(GD),
+         rollxGD = rolling_mean(xGD))
+
+premierleagueklopp_xg <- plklopp_clean %>% 
+  filter(rollxGD >= rollGD)
+
+premierleagueklopp_gd <- plklopp_clean %>% 
+  filter(rollGD >= rollxGD)
+
+
+ggplot(plklopp_clean,
+       aes(x = game_num)) +
+  geom_line(aes(y = rollGD), color = "green") +
+  geom_line(aes(y = rollxGD), color = "blue") +
+  geom_ribbon(data = premierleagueklopp_xg, 
+              aes(ymin = rollxGD, ymax = rollGD), fill = "blue") +
+  geom_hline(yintercept = 0, size = 1.5)
+```
+
+
+
+
+## Aston Villa
+
+```{r}
+get_script <- function(x) {
+  as.character(html_nodes(x, "script"))
+}
+
+# subset data element of html page
+get_data_element <- function(x, element_name) {
+  stri_unescape_unicode(str_subset(x, element_name))
+}
+
+# fix json element for parsing
+fix_json <- function(x) {
+  str_subset(
+    unlist(
+      rm_square(
+        x, extract = TRUE, include.markers = TRUE
+      )
+    ),
+    "\\[\\]", negate = TRUE
+  )
+}
+
+fix_json2 <- function(x) {
+  str_subset(
+    unlist(
+      rm_curly(
+        x, extract = TRUE, include.markers = TRUE
+      )
+    ),
+    "\\[\\]", negate = TRUE
+  )
+}
+
+
+# get player name part of html page
+get_player_name <- function(x) {
+
+  player_name <- html_nodes(x, ".header-wrapper:first-child")
+  trimws(html_text(player_name))
+}
+```
+
+```{r}
+url <- "https://understat.com/team/Liverpool/2019"
+
+team_page <- polite::bow(url)
+
+team_data <- polite::scrape(team_page) %>% 
+  get_script()
+
+team_situation_data <- get_data_element(team_data, "statisticsData")
+
+
+
+
+team_situation_data <- fix_json2(team_situation_data)
+
+paste(team_situation_data, collapse = "}'", sep = ",") -> team_situa11
+
+paste0("[", team_situa11, "]") %>% fromJSON()
+
+team_situation_data_df <- fromJSON(team_situation_data)
+
+fromJSON(team_situation_data, flatten = TRUE)
+
+team_situation_datafixed <- str_subset(unlist(rm_square(team_situation_data, include.markers = TRUE, extract = TRUE)), "\\[\\]", negate = TRUE)
+
+team_situation_data_df <- fromJSON(team_situation_datafixed)
+
+
+team_situation_data2 <- get_data_element(team_data, "datesData")
+
+team_situation_data2 <- fix_json(team_situation_data2)
+
+team_player_data <- fromJSON(team_situation_data2)
+```
+
+
+
+
+```{r}
+home_url <- "https://understat.com"
+match_id <- 11643
+match_url <- stringr::str_glue("{home_url}/match/{match_id}")
+
+match_page <- polite::bow(match_url)
+
+match_data <- polite::scrape(match_page) %>% 
+  get_script()
+
+match_shots_data <- get_data_element(match_data, "shotsData")
+
+#msd <- jsonlite::stream_in(match_shots_data)
+
+match_shots_data2 <- fix_json(match_shots_data)
+
+# Home: Liverpool
+liv_shots_data <- fromJSON(match_shots_data2[1])
+```
+
+
+
+
+
+
+
+
+```{r}
+url <- "https://understat.com/team/Liverpool/2019"
+
+team_page <- polite::bow(url)
+
+team_data <- polite::scrape(team_page) %>% 
+  html_nodes("#team-statistics > table:nth-child(3) > tbody:nth-child(2)") %>% 
+  html_table()
+```
+
+
+## game state
+
+```{r}
+url <- "https://understat.com/team/Liverpool/2019"
+
+team_page <- polite::bow(url)
+
+team_data <- polite::scrape(team_page) %>% 
+  get_script()
+
+team_situation_data <- get_data_element(team_data, "statisticsData")
+
+team_situation_data %>% 
+  str_replace(., "\\{\"situation\"",  "[\\{\"situation\"") %>% 
+  str_replace(., "\\}'\\)", "\\}]'\\)") %>% 
+  fix_json() %>% 
+  fromJSON() %>% #purrr::flatten() 
+  .[3] %>% 
+  unlist() %>% 
+  enframe() -> gamestate_df
+
+gamestate_df %>% 
+  mutate(name2 = str_replace(name, "([^0-9]*)", ""),
+         name3 = str_replace(name, "\\..*?\\.", ""),
+         name4 = str_replace(name, "([^\\+<>-]*)", ""))
+```
+
+## by minutes
+
+```{r}
+team_situation_data %>% 
+  str_replace(., "\\{\"situation\"",  "[\\{\"situation\"") %>% 
+  str_replace(., "\\}'\\)", "\\}]'\\)") %>% 
+  fix_json() %>% 
+  fromJSON() %>% #purrr::flatten() 
+  .[4] %>% 
+  unlist() %>% 
+  enframe() -> minutes_df
+
+
+minutes_df_clean <- minutes_df %>% 
+  mutate(name = str_replace(name, "against.", "against-")) %>% 
+  separate(name, c("timing", "minutes", "metric"), sep = "\\.", extra = "merge") %>% 
+  select(-timing) %>% 
+  filter(metric != "stat")
+
+glimpse(minutes_df_clean)
+```
+
+```{r}
+minutes_df_clean %>% 
+  #filter(metric == "shots") %>% 
+  ggplot(aes(x = minutes, y = value)) + 
+  geom_point(color = "red", size = 2.5) + 
+  geom_line(aes(group = metric)) +
+  theme_minimal() +
+  facet_wrap("metric", scales = "free_y")
+```
+
+
+```{r}
+minutes_df_clean %>% 
+  filter(metric == "shots" |
+         metric == "against-shots") %>% 
+  ggplot() + 
+  geom_point(data = minutes_df_clean %>% 
+               filter(metric == "shots"),
+             aes(x = minutes, y = value),
+             color = "blue", size = 2.5) + 
+  geom_point(data = minutes_df_clean %>% 
+               filter(metric == "against-shots"),
+             aes(x = minutes, y = value),
+             color = "red", size = 2.5) + 
+  geom_line(aes(x = minutes, y = value, group = metric)) +
+  labs(title = "Shots/Shots Against by Time") +
+  theme_minimal()
+```
+
+
+
+
+```{r}
+minutes_df_clean %>% 
+  filter(metric == "xG" |
+         metric == "against-xG") %>% 
+  ggplot() + 
+  geom_point(data = minutes_df_clean %>% 
+               filter(metric == "xG"),
+             aes(x = minutes, y = value),
+             color = "blue", size = 2.5) + 
+  geom_point(data = minutes_df_clean %>% 
+               filter(metric == "against-xG"),
+             aes(x = minutes, y = value),
+             color = "red", size = 2.5) + 
+  geom_line(aes(x = minutes, y = value, group = metric)) +
+  labs(title = "xG/xGA by Time") +
+  theme_minimal()
+```
+
+per shot is probably more informative
+
+
+
+
+
+
+
+
+
+```{r}
+url <- "https://understat.com/team/Liverpool/2019"
+
+team_page <- polite::bow(url)
+
+team_data <- polite::scrape(team_page) %>% 
+  get_script()
+
+team_situation_data <- get_data_element(team_data, "statisticsData")
+
+## save 
+write_json(team_situation_data, path = here::here("data/team_situation_data.json"))
+
+## edit in notepad++ [ and ] so begininig/end look like: '[{\"     \"}]'
+
+team_thingy <- read_json(path = here::here("data/team_situation_data.json")) %>% unlist()
+
+team_thingy2 <- fix_json(team_thingy)
+
+team_thingy_DF <- fromJSON(team_thingy2)
+
+
+team_thingy_DF %>% 
+  select(contains("situation")) %>% 
+  unlist() %>% 
+  enframe() %>% 
+  mutate(name = str_replace(name, "situation.", ""),
+         perGame = value / 11)
+```
+
+
+
+
+
+```{r}
+url <- "https://understat.com/team/Liverpool/2019"
+
+team_page <- polite::bow(url)
+
+team_data <- polite::scrape(team_page) %>% 
+  get_script()
+
+team_date_data <- get_data_element(team_data, "datesData") %>% 
+  fix_json() %>% 
+  fromJSON()
+
+```
+
