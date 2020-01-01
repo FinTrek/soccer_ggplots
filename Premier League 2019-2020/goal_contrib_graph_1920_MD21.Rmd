@@ -12,7 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # pkgs
 
 ```{r, message=FALSE, warning=FALSE}
-pacman::p_load(tidyverse, polite, scales, ggimage, ggforce,
+pacman::p_load(tidyverse, polite, scales, ggimage, 
+               ggforce, ggtext,
                rvest, glue, extrafont, ggrepel, magick)
 loadfonts()
 ```
@@ -70,8 +71,10 @@ add_logo <- function(plot_path, logo_path, logo_position, logo_scale = 10){
 
 # Premier League data
 
-
 ## fbref
+
+- Save "Player Standard Stats" & "Squad Standard Stats" as a `.csv` file or whatever you prefer.
+- https://fbref.com/en/comps/9/stats/Premier-League-Stats
 
 ### squad stats
 
@@ -91,6 +94,13 @@ epl_squad_stats_MD20 <- epl_squad_stats_MD20 %>%
 
 glimpse(epl_squad_stats_MD20)
 ```
+
+```{r}
+## save
+saveRDS(epl_squad_stats_MD20, file = glue("{here::here()}/data/epl_squad_stats_MD20.RDS"))
+epl_squad_stats_MD20 <- readRDS(file = glue("{here::here()}/data/epl_squad_stats_MD20.RDS"))
+```
+
 
 ### player stats
 
@@ -112,6 +122,11 @@ epl_player_stats_MD20 <- epl_player_stats_MD20 %>%
 glimpse(epl_player_stats_MD20)
 ```
 
+```{r}
+## save
+saveRDS(epl_player_stats_MD20, file = glue("{here::here()}/data/epl_player_stats_MD20.RDS"))
+epl_player_stats_MD20 <- readRDS(file = glue("{here::here()}/data/epl_player_stats_MD20.RDS"))
+```
 
 
 ## clean
@@ -141,10 +156,11 @@ goal_contribution_clean_df <- epl_player_stats_MD20 %>%
          assist_contrib = Ast / Gls_squad) %>% 
   ungroup() %>% 
   ## keep fullname so can differentiate A. Gomes (Andre/Angel), etc.
-  select(player, fullname, Pos, Squad, 
+  select(player, fullname, Pos, Squad, Min,
          Gls, Gls_squad, PK, PK_squad, 
          Ast, Ast_squad,
-         goal_contrib, assist_contrib)
+         goal_contrib, assist_contrib,
+         npxG_p90, xA_p90, npxG, xA) 
 
 glimpse(goal_contribution_clean_df)
 ```
@@ -152,23 +168,16 @@ glimpse(goal_contribution_clean_df)
 
 ## plot
 
-- original: goal = 0.25, assist = 0.15
-- 2: goal = 0.225, assist = 0.125
-- 3: goal = 0.2, assist = 0.1
+### goals & assists
 
-desc_raul <- "Hazard FC: With 16 goals and 15 assists Eden Hazard has been involved in the most goals for a team this season."
-
-desc_aubaings <- "Scoring 37.5% and 37.1% of their team's goals, Jamie Vardy and Glen Murray have proven to be talismans for their team yet again!"
-
-desc_buendia <- "Another fantastic season from Ryan Fraser with 7 goals and 14 assists (one behind league-leader Hazard)"
 
 ```{r fig.width = 11, fig.height = 9}  
 ## Description text
-desc_raul <- "El Lobo Alfa: With 8 goals & 6 assists Raúl Jiménez has been the fulcrum of Wolves' push for the Champions League."
+desc_raul <- "El Lobo Alfa: With 8 goals (7.6 xG) & 6 assists (4.5 xA) Raúl Jiménez has been the fulcrum of Wolves' push for the Champions League."
 
-desc_aubaings <- "S.O.S., Help Needed: Scoring 50% (HALF!) of their team's goals, Auba & Ings keep their team's hopes alive!"
+desc_aubaings <- "S.O.S., Help Needed: Scoring 50% (HALF!) of their team's goals, Ings (0.55 xG per 90, 5th best in the league) & Auba (0.52 xG per 90, 10th) keep their team's hopes alive!"
 
-desc_buendia <- "One of the few bright lights in the Canaries' season, Buendía has impressed with 6 assists (0.36 A per 90, 0.32 xA per 90)"
+desc_buendia <- "One of the few bright lights in the Canaries' season, Buendía has impressed with 6 assists & 0.32 xA per 90 (4th best in the league)!"
 
 ## PLOT!
 goal_contribution_matrix <- goal_contribution_clean_df %>% 
@@ -194,7 +203,7 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
     aes(filter = player == "R. Jiménez", 
         label = "Raúl Jiménez",
         description = desc_raul), 
-    label.width = unit(80, 'mm'), label.buffer = unit(5, "mm"),
+    label.width = unit(90, 'mm'), label.buffer = unit(5, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
   geom_mark_hull(
     aes(filter = player %in% c("P. Aubameyang", "D. Ings"), 
@@ -207,7 +216,7 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
         label = "Emi Buendía",
         description = desc_buendia), 
     concavity = 1,
-    label.width = unit(60, 'mm'), label.buffer = unit(0.5, "mm"),
+    label.width = unit(65, 'mm'), label.buffer = unit(0.5, "mm"),
     label.fontsize = c(14, 12), label.family = "Roboto Condensed") +
   scale_x_continuous(labels = percent_format(accuracy = 1), 
                      breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3),
@@ -215,18 +224,18 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
   scale_y_continuous(labels = percent_format(accuracy = 1), 
                      breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
                      limits = c(0, 0.57)) +
-  labs(title = "Goal Contributions: Premier League (2019-2020 Season)", 
+  labs(title = "Goal Involvement: <b style='color: #38003c'>Premier League</b> (2019-2020 Season)", 
        subtitle = glue("
                        Goal Involvement (Goals or Assists) as Percentage of Total Club Goals
-                       Matchday 20 | December 31st, 2019"),
+                       Matchday 20 | January 1st, 2020"),
        caption = glue("
                       Data: FBref | StatsBomb
-                      Twitter: @R_by_Ryo"),
+                      Ryo Nakagawara, Twitter: @R_by_Ryo"),
        x = "Percentage of Club Goals Assisted",
        y = "Percentage of Club Goals Scored") +
   theme_minimal() +
-  theme(text = element_text(family = "Roboto Condensed"),
-        title = element_text(size = 18),
+  theme(text = element_markdown(family = "Roboto Condensed"),
+        plot.title = element_markdown(size = 20),
         plot.subtitle = element_text(size = 16),
         plot.caption = element_text(size = 14),
         axis.title = element_text(size = 14),
@@ -236,7 +245,7 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
 goal_contribution_matrix
 ```
 
-## save
+#### save
 
 ```{r}
 ggsave(plot = goal_contribution_matrix, 
@@ -258,4 +267,99 @@ plot_logo
 image_write(image = plot_logo, 
             here::here("Premier League 2019-2020/output/goal_contribution_plot_1920_MD20_logo.png"))
 ```
+
+
+### xG 
+
+
+```{r}
+goal_contribution_clean_df %>% 
+  filter(Min >= 900) %>% 
+  summarize(avg_npxg90 = median(npxG_p90),
+            avg_xA = median(xA_p90))
+```
+
+
+```{r}
+xG_xA_per90 <- goal_contribution_clean_df %>% 
+  add_row(player = "", npxG_p90 = 0.46, xA_p90 = 0.26)
+```
+
+
+```{r fig.width = 12, fig.height = 10}
+xG_xA_per90 %>% 
+  filter(Min >= 900) %>% 
+  ggplot(aes(xA_p90, npxG_p90)) +
+  geom_point(data = xG_xA_per90 %>%
+               filter(xA_p90 < 0.2 | npxG_p90 < 0.3,
+                      Min >= 900),
+             color = "grey20", size = 4, alpha = 0.2) +
+  geom_point(data = xG_xA_per90 %>%
+               filter(xA_p90 > 0.2 | npxG_p90 > 0.3,
+                      Min >= 900),
+             color = "red", size = 4) +
+  geom_hline(yintercept = 0.3, color = "grey20", alpha = 0.4) +
+  geom_vline(xintercept = 0.2, color = "grey20", alpha = 0.4) +
+  geom_text_repel(
+    data = xG_xA_per90 %>%
+      filter(xA_p90 > 0.2 | npxG_p90 > 0.3, 
+             Min >= 900),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
+    seed = 15, size = 4, 
+    min.segment.length = 0, segment.color = "red",
+    point.padding = 0.5) +
+  # geom_mark_circle(
+  #   aes(filter = player == "G. Jesus", 
+  #       label = "Gabriel Jesus",
+  #       description = desc_raul), 
+  #   label.width = unit(80, 'mm'), label.buffer = unit(5, "mm"),
+  #   label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
+  geom_mark_hull(
+    aes(filter = player %in% c("R. Sterling", "S. Agüero",
+                               "G. Jesus", "R. Mahrez", "K. De Bruyne",
+                               ""), 
+        label = "City's Attackers",
+        description = desc_aubaings),
+    expand = unit(2.4, "mm"),
+    label.buffer = unit(15, "mm"), label.fontsize = c(14, 11),
+    label.family = "Roboto Condensed") +
+  # geom_mark_hull(
+  #   aes(filter = player %in% c("R. Mahrez", "K. De Bruyne"), 
+  #       label = "City's Attackers"),
+  #   expand = unit(2.22, "mm"),
+  #   label.buffer = unit(5, "mm"), label.fontsize = c(14, 11),
+  #   label.family = "Roboto Condensed") +
+  # geom_mark_hull(
+  #   aes(filter = player == "S. Mané", 
+  #       label = "Sadio Mané",
+  #       description = desc_buendia), 
+  #   concavity = 1,
+  #   label.width = unit(60, 'mm'), label.buffer = unit(0.5, "mm"),
+  #   label.fontsize = c(14, 12), label.family = "Roboto Condensed") +
+  scale_x_continuous(labels = seq(0, 0.9, 0.1), 
+                     breaks = seq(0, 0.9, 0.1),
+                     limits = c(0, 0.65)) +
+  scale_y_continuous(labels = seq(0, 0.9, 0.1), 
+                     breaks = seq(0, 0.9, 0.1),
+                     limits = c(0, 0.9)) +
+  labs(title = "City's Attackers Still Excellent: Premier League (2019-2020 Season)", 
+       subtitle = glue("
+                       Minimum 900 Minutes Played | Matchday 20 | December 31st, 2019"),
+       caption = glue("
+                      Data: FBref | StatsBomb
+                      Twitter: @R_by_Ryo"),
+       x = "Expected Assists (xA) per 90",
+       y = "non-Penalty Expected Goals (np-xG) per 90") +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank())
+```
+
+
+
 
