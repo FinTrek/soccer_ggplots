@@ -274,7 +274,14 @@ image_write(image = plot_logo,
 
 ```{r}
 goal_contribution_clean_df %>% 
-  filter(Min >= 900) %>% 
+  filter(Min >= 900,
+         Pos %in% c("FW", "FWMF")) %>% 
+  summarize(avg_npxg90 = median(npxG_p90),
+            avg_xA = median(xA_p90))
+
+goal_contribution_clean_df %>% 
+  filter(Min >= 900,
+         Pos %in% c("FW")) %>% 
   summarize(avg_npxg90 = median(npxG_p90),
             avg_xA = median(xA_p90))
 ```
@@ -285,50 +292,79 @@ xG_xA_per90 <- goal_contribution_clean_df %>%
   add_row(player = "", npxG_p90 = 0.46, xA_p90 = 0.26)
 ```
 
+```{r}
+xG_xA_per90 %>% 
+  filter(Min >= 900,
+         Pos %in% c("FW", "FWMF")) %>% 
+  summarize(avg_npxg90 = median(npxG_p90),
+            avg_xA = median(xA_p90))
+```
+
+- Buendia: 3.35 KP per 90 (3rd)
+- G. Jesus (4.55 sh/90, 1., 1.88 SOT/90, 2. just behind Mahrez 1.89)
+- Aguero (0.66 np-xG per 90, 2., 6.6 np-xG, 8 np-Goals) + Sterling (0.47 np-xG per 90, 7., 0.26 xA per 90, 7.)
+- Mahrez (3.33 PPA per 90, 2nd. 2.77 KP per 90, 7th) + De Bruyne (3.56 PPA per 90. 4.02 KP per 90, 1st)
+- lots of attacking fullbacks in bottom: Trent, Robbo, Chilwell, Azpi, Max Aarons, Digne, Matt Targett
+
+```{r}
+desc_jesus <- "Jesus leads the league with 0.84 np-xG per 90, however, for all the chances that fall his way he has only converted 6 goals from 8.5 xG."
+desc_aguero_sterling <- "With only 1 goal in the last 6 league games City is in desperate need for Aguero to get firing again as his 8 np-Goals from 6.6 np-xG is more clinical than Gabriel Jesus. Raheem Sterling is City's top scorer with 11 goals from 8.7 np-xG and is in the top 10 for xG and xA per 90 showing his dual threat."
+desc_mahrez_debruyne <- "Mahrez & De Bruyne create the chances that Sterling, Aguero, and to a lesser extent - Gabriel Jesus convert. The two lead the league in Passes into the Penalty Area (PPA) while De Bruyne racks up 4.02 Key Passes (KP) per 90, the best in the league by far."
+```
+
 
 ```{r fig.width = 12, fig.height = 10}
-xG_xA_per90 %>% 
+xG_xA_per90_plot <- xG_xA_per90 %>% 
   filter(Min >= 900) %>% 
   ggplot(aes(xA_p90, npxG_p90)) +
   geom_point(data = xG_xA_per90 %>%
-               filter(xA_p90 < 0.2 | npxG_p90 < 0.3,
+               filter(xA_p90 < 0.14 | npxG_p90 < 0.29,
                       Min >= 900),
              color = "grey20", size = 4, alpha = 0.2) +
   geom_point(data = xG_xA_per90 %>%
-               filter(xA_p90 > 0.2 | npxG_p90 > 0.3,
+               filter(xA_p90 > 0.14 | npxG_p90 > 0.29,
                       Min >= 900),
              color = "red", size = 4) +
-  geom_hline(yintercept = 0.3, color = "grey20", alpha = 0.4) +
-  geom_vline(xintercept = 0.2, color = "grey20", alpha = 0.4) +
+  geom_hline(yintercept = 0.29, color = "grey20", alpha = 0.8) +
+  geom_vline(xintercept = 0.14, color = "grey20", alpha = 0.8) +
   geom_text_repel(
     data = xG_xA_per90 %>%
-      filter(xA_p90 > 0.2 | npxG_p90 > 0.3, 
+      filter(xA_p90 > 0.14 | npxG_p90 > 0.29, 
+             !player %in% c("G. Jesus", "R. Sterling", "S. Agüero",
+                            "R. Mahrez", "K. De Bruyne"),
              Min >= 900),
     aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
-    seed = 15, size = 4, 
+    seed = 15, size = 3.5, 
     min.segment.length = 0, segment.color = "red",
     point.padding = 0.5) +
-  # geom_mark_circle(
-  #   aes(filter = player == "G. Jesus", 
-  #       label = "Gabriel Jesus",
-  #       description = desc_raul), 
-  #   label.width = unit(80, 'mm'), label.buffer = unit(5, "mm"),
-  #   label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
+  geom_text_repel(
+    data = xG_xA_per90 %>%
+      filter(player %in% c("R. Sterling", "S. Agüero",
+                           "R. Mahrez", "K. De Bruyne")),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
+    seed = 15, size = 4.5, 
+    min.segment.length = 0, segment.color = "red",
+    point.padding = unit(3, "mm")) +
+  geom_mark_circle(
+    aes(filter = player == "G. Jesus",
+        label = "Gabi Jesus: The Finisher (?)",
+        description = desc_jesus),
+    label.width = unit(60, 'mm'), label.buffer = unit(5, "mm"),
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
   geom_mark_hull(
-    aes(filter = player %in% c("R. Sterling", "S. Agüero",
-                               "G. Jesus", "R. Mahrez", "K. De Bruyne",
-                               ""), 
-        label = "City's Attackers",
-        description = desc_aubaings),
-    expand = unit(2.4, "mm"),
-    label.buffer = unit(15, "mm"), label.fontsize = c(14, 11),
+    aes(filter = player %in% c("R. Sterling", "S. Agüero"), 
+        label = "City's Hybrid Threats",
+        description = desc_aguero_sterling),
+    expand = unit(0.1, "mm"), label.width = unit(70, 'mm'),
+    label.buffer = unit(20, "mm"), label.fontsize = c(14, 11),
     label.family = "Roboto Condensed") +
-  # geom_mark_hull(
-  #   aes(filter = player %in% c("R. Mahrez", "K. De Bruyne"), 
-  #       label = "City's Attackers"),
-  #   expand = unit(2.22, "mm"),
-  #   label.buffer = unit(5, "mm"), label.fontsize = c(14, 11),
-  #   label.family = "Roboto Condensed") +
+  geom_mark_hull(
+    aes(filter = player %in% c("R. Mahrez", "K. De Bruyne"),
+        label = "City's Creators-in-Chief",
+        description = desc_mahrez_debruyne),
+    expand = unit(2.22, "mm"), label.width = unit(80, 'mm'),
+    label.buffer = unit(10, "mm"), label.fontsize = c(14, 11),
+    label.family = "Roboto Condensed") +
   # geom_mark_hull(
   #   aes(filter = player == "S. Mané", 
   #       label = "Sadio Mané",
@@ -342,9 +378,11 @@ xG_xA_per90 %>%
   scale_y_continuous(labels = seq(0, 0.9, 0.1), 
                      breaks = seq(0, 0.9, 0.1),
                      limits = c(0, 0.9)) +
-  labs(title = "City's Attackers Still Excellent: Premier League (2019-2020 Season)", 
+  labs(title = "City's Attackers Dominate: ", 
        subtitle = glue("
-                       Minimum 900 Minutes Played | Matchday 20 | December 31st, 2019"),
+                       Premier League (2019-2020 Season) | Matchday 20 | December 31st, 2019
+                       Average (Median) for Midfielders/Forwards | Minimum 900 Minutes Played
+                       Average np-xG per 90: 0.29 | Average xA per 90: 0.14"),
        caption = glue("
                       Data: FBref | StatsBomb
                       Twitter: @R_by_Ryo"),
@@ -358,8 +396,31 @@ xG_xA_per90 %>%
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 12),
         panel.grid.minor.x = element_blank())
+
+xG_xA_per90_plot
 ```
 
 
+#### save
 
+```{r}
+ggsave(plot = xG_xA_per90_plot, 
+       here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD20.png"),
+       height = 10, width = 12)
+```
+
+```{r}
+plot_logo <- add_logo(
+  plot_path = here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD20.png"),
+  logo_path = "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg",
+  logo_position = "top right",
+  logo_scale = 6)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, 
+            here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD20_logo.png"))
+```
 
