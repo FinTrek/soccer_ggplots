@@ -101,6 +101,29 @@ saveRDS(epl_squad_stats_MD20, file = glue("{here::here()}/data/epl_squad_stats_M
 epl_squad_stats_MD20 <- readRDS(file = glue("{here::here()}/data/epl_squad_stats_MD20.RDS"))
 ```
 
+```{r}
+epl_squad_stats_MD21_raw <- read_csv(here::here("data/epl_squad_stats_MD21.csv"),
+                                 skip = 1, col_names = TRUE)
+
+epl_squad_stats_MD21 <- epl_squad_stats_MD21_raw %>% 
+  rename_at(vars(12:16), 
+            ~ glue::glue("{colnames(epl_squad_stats_MD21_raw)[12:16]}_p90")) %>% 
+  rename_at(vars(20:24), 
+            ~ glue::glue("{colnames(epl_squad_stats_MD21_raw)[20:24]}_p90"))
+
+epl_squad_stats_MD21 <- epl_squad_stats_MD21 %>% 
+  rename_at(vars(2:24), ~ glue::glue("{colnames(epl_squad_stats_MD21)[2:24]}_squad")) %>% 
+  rename_at(vars(contains("_1")), ~ str_replace(., "_1", ""))
+
+glimpse(epl_squad_stats_MD21)
+```
+
+```{r}
+## save
+saveRDS(epl_squad_stats_MD21, file = glue("{here::here()}/data/epl_squad_stats_MD21.RDS"))
+epl_squad_stats_MD21 <- readRDS(file = glue("{here::here()}/data/epl_squad_stats_MD21.RDS"))
+```
+
 
 ### player stats
 
@@ -128,19 +151,45 @@ saveRDS(epl_player_stats_MD20, file = glue("{here::here()}/data/epl_player_stats
 epl_player_stats_MD20 <- readRDS(file = glue("{here::here()}/data/epl_player_stats_MD20.RDS"))
 ```
 
+```{r}
+epl_player_stats_MD21_raw <- read_csv(here::here("data/epl_player_stats_MD21.csv"),
+                                  skip = 1, col_names = TRUE)
+
+epl_player_stats_MD21 <- epl_player_stats_MD21_raw %>% 
+  rename_at(vars(17:21), 
+            ~ glue::glue("{colnames(epl_player_stats_MD21_raw)[17:21]}_p90")) %>% 
+  rename_at(vars(25:29), 
+            ~ glue::glue("{colnames(epl_player_stats_MD21_raw)[25:29]}_p90"))
+
+epl_player_stats_MD21 <- epl_player_stats_MD21 %>% 
+  rename_at(vars(contains("_1")), ~ str_replace(., "_1", "")) %>% 
+  select(-Matches, -Rk)
+  
+
+glimpse(epl_player_stats_MD21)
+```
+
+```{r}
+## save
+saveRDS(epl_player_stats_MD21, file = glue("{here::here()}/data/epl_player_stats_MD21.RDS"))
+epl_player_stats_MD21 <- readRDS(file = glue("{here::here()}/data/epl_player_stats_MD21.RDS"))
+```
 
 ## clean
 
 
 ```{r}
-epl_player_stats_MD20 %>% 
-  left_join(epl_squad_stats_MD20, by = "Squad") %>% 
+# epl_player_stats_MD21 <- epl_player_stats_MD21 %>% 
+#   rename(npxG_p90 = `npxG▼_p90`)
+
+epl_player_stats_MD21 %>% 
+  left_join(epl_squad_stats_MD21, by = "Squad") %>% 
   glimpse()
 ```
 
 ```{r}
-goal_contribution_clean_df <- epl_player_stats_MD20 %>% 
-  left_join(epl_squad_stats_MD20, by = "Squad") %>% 
+goal_contribution_clean_df <- epl_player_stats_MD21 %>% 
+  left_join(epl_squad_stats_MD21, by = "Squad") %>% 
   separate(Player, into = c("fullname", "allname"), sep = "\\\\") %>% 
   separate(fullname, into = c("firstname", "lastname"),
            sep = "\\s", extra = "merge",
@@ -288,8 +337,7 @@ goal_contribution_clean_df %>%
 
 
 ```{r}
-xG_xA_per90 <- goal_contribution_clean_df %>% 
-  add_row(player = "", npxG_p90 = 0.46, xA_p90 = 0.26)
+xG_xA_per90 <- goal_contribution_clean_df
 ```
 
 ```{r}
@@ -307,9 +355,11 @@ xG_xA_per90 %>%
 - lots of attacking fullbacks in bottom: Trent, Robbo, Chilwell, Azpi, Max Aarons, Digne, Matt Targett
 
 ```{r}
-desc_jesus <- "Jesus leads the league with 0.84 np-xG per 90, however, for all the chances that fall his way he has only converted 6 goals from 8.5 xG."
+desc_jesus <- "Jesus leads the league with 0.87 np-xG per 90, however, until the Everton game he had only converted 6 goals from 8.5 xG. Now he has improved to 8 goals from 9.6 np-xG!"
+
 desc_aguero_sterling <- "With only 1 goal in the last 6 league games City is in desperate need for Aguero to get firing again as his 8 np-Goals from 6.6 np-xG is more clinical than Gabriel Jesus. Raheem Sterling is City's top scorer with 11 goals from 8.7 np-xG and is in the top 10 for xG and xA per 90 showing his dual threat."
-desc_mahrez_debruyne <- "Mahrez & De Bruyne create the chances that Sterling, Aguero, and to a lesser extent - Gabriel Jesus convert. The two lead the league in Passes into the Penalty Area (PPA) while De Bruyne racks up 4.02 Key Passes (KP) per 90, the best in the league by far."
+
+desc_mahrez_debruyne <- "Mahrez & De Bruyne create the chances that Sterling, Aguero, and to a lesser extent - Gabriel Jesus convert. The two lead the league in Passes into the Penalty Area (PPA) while De Bruyne racks up 3.86 Key Passes (KP) per 90, the best in the league by far."
 ```
 
 
@@ -318,80 +368,92 @@ xG_xA_per90_plot <- xG_xA_per90 %>%
   filter(Min >= 900) %>% 
   ggplot(aes(xA_p90, npxG_p90)) +
   geom_point(data = xG_xA_per90 %>%
-               filter(xA_p90 < 0.14 | npxG_p90 < 0.29,
+               filter(xA_p90 < 0.13 | npxG_p90 < 0.29,
                       Min >= 900),
              color = "grey20", size = 4, alpha = 0.2) +
   geom_point(data = xG_xA_per90 %>%
-               filter(xA_p90 > 0.14 | npxG_p90 > 0.29,
+               filter(xA_p90 > 0.13 | npxG_p90 > 0.29,
                       Min >= 900),
              color = "red", size = 4) +
-  geom_hline(yintercept = 0.29, color = "grey20", alpha = 0.8) +
-  geom_vline(xintercept = 0.14, color = "grey20", alpha = 0.8) +
+  geom_hline(yintercept = 0.29, color = "red", alpha = 0.6) +
+  geom_vline(xintercept = 0.13, color = "red", alpha = 0.6) +
   geom_text_repel(
     data = xG_xA_per90 %>%
-      filter(xA_p90 > 0.14 | npxG_p90 > 0.29, 
+      filter(xA_p90 > 0.13 | npxG_p90 > 0.29, 
              !player %in% c("G. Jesus", "R. Sterling", "S. Agüero",
-                            "R. Mahrez", "K. De Bruyne"),
+                            "R. Mahrez", "K. De Bruyne", "S. Mané"),
              Min >= 900),
     aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
     seed = 15, size = 3.5, 
     min.segment.length = 0, segment.color = "red",
     point.padding = 0.5) +
+  geom_text(
+    data = xG_xA_per90 %>%
+      filter(player == "S. Mané"),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+    size = 3.5, nudge_y = -0.015) +
+  geom_text(
+    data = xG_xA_per90 %>%
+      filter(player == "R. Sterling"),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+    size = 4.5, nudge_x = 0.03, nudge_y = 0.025,
+    color = "#6CABDD") +
   geom_text_repel(
     data = xG_xA_per90 %>%
-      filter(player %in% c("R. Sterling", "S. Agüero",
+      filter(player %in% c("S. Agüero",
                            "R. Mahrez", "K. De Bruyne")),
     aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
-    seed = 15, size = 4.5, 
+    seed = 15, size = 4.5, color = "#6CABDD",
     min.segment.length = 0, segment.color = "red",
     point.padding = unit(3, "mm")) +
   geom_mark_circle(
     aes(filter = player == "G. Jesus",
-        label = "Gabi Jesus: The Finisher (?)",
+        label = "Gabi Jesus: The Finisher",
         description = desc_jesus),
     label.width = unit(60, 'mm'), label.buffer = unit(5, "mm"),
-    label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12),
+    label.colour = c("#6CABDD", "black")) +
   geom_mark_hull(
     aes(filter = player %in% c("R. Sterling", "S. Agüero"), 
         label = "City's Hybrid Threats",
         description = desc_aguero_sterling),
-    expand = unit(0.1, "mm"), label.width = unit(70, 'mm'),
+    expand = unit(0.05, "mm"), label.width = unit(80, 'mm'),
     label.buffer = unit(20, "mm"), label.fontsize = c(14, 11),
-    label.family = "Roboto Condensed") +
+    label.family = "Roboto Condensed", 
+    label.colour = c("#6CABDD", "black")) +
   geom_mark_hull(
     aes(filter = player %in% c("R. Mahrez", "K. De Bruyne"),
         label = "City's Creators-in-Chief",
         description = desc_mahrez_debruyne),
-    expand = unit(2.22, "mm"), label.width = unit(80, 'mm'),
+    expand = unit(2.22, "mm"), label.width = unit(100, 'mm'),
     label.buffer = unit(10, "mm"), label.fontsize = c(14, 11),
-    label.family = "Roboto Condensed") +
-  # geom_mark_hull(
-  #   aes(filter = player == "S. Mané", 
-  #       label = "Sadio Mané",
-  #       description = desc_buendia), 
-  #   concavity = 1,
-  #   label.width = unit(60, 'mm'), label.buffer = unit(0.5, "mm"),
-  #   label.fontsize = c(14, 12), label.family = "Roboto Condensed") +
+    label.family = "Roboto Condensed", 
+    label.colour = c("#6CABDD", "black")) +
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 0.132, y = 0.9, hjust = 0, color = "red",
+           label = "Average xA per 90: 0.14") +
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 0.57, y = 0.3, color = "red",
+           label = "Average np-xG per 90: 0.29") +
   scale_x_continuous(labels = seq(0, 0.9, 0.1), 
                      breaks = seq(0, 0.9, 0.1),
                      limits = c(0, 0.65)) +
   scale_y_continuous(labels = seq(0, 0.9, 0.1), 
                      breaks = seq(0, 0.9, 0.1),
                      limits = c(0, 0.9)) +
-  labs(title = "City's Attackers Dominate: ", 
+  labs(title = "<b style='color: #6CABDD'>City's Attackers </b> Dominate the 'Expected' Stats: xG per 90 & xA per 90", 
        subtitle = glue("
-                       Premier League (2019-2020 Season) | Matchday 20 | December 31st, 2019
-                       Average (Median) for Midfielders/Forwards | Minimum 900 Minutes Played
-                       Average np-xG per 90: 0.29 | Average xA per 90: 0.14"),
+                       Premier League (2019-2020 Season) | Matchday 21 | January 3rd, 2020
+                       <p><b style='color: red'>Average (Median)</b> for Midfielders/Forwards | Minimum 900 Minutes Played"),
        caption = glue("
                       Data: FBref | StatsBomb
-                      Twitter: @R_by_Ryo"),
+                      Ryo Nakagawara, Twitter: @R_by_Ryo"),
        x = "Expected Assists (xA) per 90",
        y = "non-Penalty Expected Goals (np-xG) per 90") +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
-        title = element_text(size = 18),
-        plot.subtitle = element_text(size = 16),
+        plot.title = element_markdown(size = 18),
+        plot.subtitle = element_markdown(size = 16),
         plot.caption = element_text(size = 14),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 12),
@@ -405,13 +467,13 @@ xG_xA_per90_plot
 
 ```{r}
 ggsave(plot = xG_xA_per90_plot, 
-       here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD20.png"),
+       here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD21.png"),
        height = 10, width = 12)
 ```
 
 ```{r}
 plot_logo <- add_logo(
-  plot_path = here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD20.png"),
+  plot_path = here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD21.png"),
   logo_path = "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg",
   logo_position = "top right",
   logo_scale = 6)
@@ -421,6 +483,6 @@ plot_logo
 
 ```{r}
 image_write(image = plot_logo, 
-            here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD20_logo.png"))
+            here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD21_logo.png"))
 ```
 
