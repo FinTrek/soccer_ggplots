@@ -1,7 +1,7 @@
 ---
 title: "Untitled"
 author: "RN7"
-date: "1/1/2020"
+date: "1/8/2020"
 output: html_document
 ---
 
@@ -69,127 +69,70 @@ add_logo <- function(plot_path, logo_path, logo_position, logo_scale = 10){
 }
 ```
 
-# Premier League data
+# Bundesliga data
 
 ## fbref
 
 - Save "Player Standard Stats" & "Squad Standard Stats" as a `.csv` file or whatever you prefer.
-- https://fbref.com/en/comps/9/stats/Premier-League-Stats
+- https://fbref.com/en/comps/20/stats/Bundesliga-Stats
 
 ### squad stats
 
 ```{r}
-epl_squad_stats_MD20_raw <- read_csv(here::here("data/epl_squad_stats_MD20.csv"),
+buli_squad_stats_hinrunde_raw <- read_csv(here::here("data/buli_squad_stats_hinrunde.csv"),
                                  skip = 1, col_names = TRUE)
 
-epl_squad_stats_MD20 <- epl_squad_stats_MD20_raw %>% 
+buli_squad_stats_hinrunde <- buli_squad_stats_hinrunde_raw %>% 
   rename_at(vars(12:16), 
-            ~ glue::glue("{colnames(epl_squad_stats_MD20_raw)[12:16]}_p90")) %>% 
+            ~ glue::glue("{colnames(buli_squad_stats_hinrunde_raw)[12:16]}_p90")) %>% 
   rename_at(vars(20:24), 
-            ~ glue::glue("{colnames(epl_squad_stats_MD20_raw)[20:24]}_p90"))
+            ~ glue::glue("{colnames(buli_squad_stats_hinrunde_raw)[20:24]}_p90"))
 
-epl_squad_stats_MD20 <- epl_squad_stats_MD20 %>% 
-  rename_at(vars(2:24), ~ glue::glue("{colnames(epl_squad_stats_MD20)[2:24]}_squad")) %>% 
+buli_squad_stats_hinrunde <- buli_squad_stats_hinrunde %>% 
+  rename_at(vars(2:24), ~ glue::glue("{colnames(buli_squad_stats_hinrunde)[2:24]}_squad")) %>% 
   rename_at(vars(contains("_1")), ~ str_replace(., "_1", ""))
 
-glimpse(epl_squad_stats_MD20)
+glimpse(buli_squad_stats_hinrunde)
 ```
 
 ```{r}
 ## save
-saveRDS(epl_squad_stats_MD20, file = glue("{here::here()}/data/epl_squad_stats_MD20.RDS"))
-epl_squad_stats_MD20 <- readRDS(file = glue("{here::here()}/data/epl_squad_stats_MD20.RDS"))
+saveRDS(buli_squad_stats_hinrunde, file = glue("{here::here()}/data/buli_squad_stats_hinrunde.RDS"))
+buli_squad_stats_hinrunde <- readRDS(file = glue("{here::here()}/data/buli_squad_stats_hinrunde.RDS"))
 ```
-
-```{r}
-epl_squad_stats_MD21_2_raw <- read_csv(here::here("data/epl_squad_stats_MD21_2.csv"),
-                                 skip = 1, col_names = TRUE)
-
-epl_squad_stats_MD21_2 <- epl_squad_stats_MD21_2_raw %>% 
-  rename_at(vars(12:16), 
-            ~ glue::glue("{colnames(epl_squad_stats_MD21_2_raw)[12:16]}_p90")) %>% 
-  rename_at(vars(20:24), 
-            ~ glue::glue("{colnames(epl_squad_stats_MD21_2_raw)[20:24]}_p90"))
-
-epl_squad_stats_MD21_2 <- epl_squad_stats_MD21_2 %>% 
-  rename_at(vars(2:24), ~ glue::glue("{colnames(epl_squad_stats_MD21_2)[2:24]}_squad")) %>% 
-  rename_at(vars(contains("_1")), ~ str_replace(., "_1", ""))
-
-glimpse(epl_squad_stats_MD21_2)
-```
-
-```{r}
-## save
-saveRDS(epl_squad_stats_MD21_2, file = glue("{here::here()}/data/epl_squad_stats_MD21_2.RDS"))
-epl_squad_stats_MD21_2 <- readRDS(file = glue("{here::here()}/data/epl_squad_stats_MD21_2.RDS"))
-```
-
 
 ### player stats
 
 ```{r}
-epl_player_stats_MD20_raw <- read_csv(here::here("data/epl_player_stats_MD20.csv"),
+buli_player_stats_hinrunde_raw <- read_csv(here::here("data/buli_player_stats_hinrunde.csv"),
                                   skip = 1, col_names = TRUE)
 
-epl_player_stats_MD20 <- epl_player_stats_MD20_raw %>% 
+buli_player_stats_hinrunde <- buli_player_stats_hinrunde_raw %>% 
   rename_at(vars(17:21), 
-            ~ glue::glue("{colnames(epl_player_stats_MD20_raw)[17:21]}_p90")) %>% 
+            ~ glue::glue("{colnames(buli_player_stats_hinrunde_raw)[17:21]}_p90")) %>% 
   rename_at(vars(25:29), 
-            ~ glue::glue("{colnames(epl_player_stats_MD20_raw)[25:29]}_p90"))
+            ~ glue::glue("{colnames(buli_player_stats_hinrunde_raw)[25:29]}_p90"))
 
-epl_player_stats_MD20 <- epl_player_stats_MD20 %>% 
+buli_player_stats_hinrunde <- buli_player_stats_hinrunde %>% 
   rename_at(vars(contains("_1")), ~ str_replace(., "_1", "")) %>% 
   select(-Matches, -Rk)
   
 
-glimpse(epl_player_stats_MD20)
+glimpse(buli_player_stats_hinrunde)
 ```
 
 ```{r}
 ## save
-saveRDS(epl_player_stats_MD20, file = glue("{here::here()}/data/epl_player_stats_MD20.RDS"))
-epl_player_stats_MD20 <- readRDS(file = glue("{here::here()}/data/epl_player_stats_MD20.RDS"))
+saveRDS(buli_player_stats_hinrunde, file = glue("{here::here()}/data/buli_player_stats_hinrunde.RDS"))
+buli_player_stats_hinrunde <- readRDS(file = glue("{here::here()}/data/buli_player_stats_hinrunde.RDS"))
 ```
 
-```{r}
-epl_player_stats_MD21_2_raw <- read_csv(here::here("data/epl_player_stats_MD21_2.csv"),
-                                  skip = 1, col_names = TRUE)
-
-epl_player_stats_MD21_2 <- epl_player_stats_MD21_2_raw %>% 
-  rename_at(vars(17:21), 
-            ~ glue::glue("{colnames(epl_player_stats_MD21_2_raw)[17:21]}_p90")) %>% 
-  rename_at(vars(25:29), 
-            ~ glue::glue("{colnames(epl_player_stats_MD21_2_raw)[25:29]}_p90"))
-
-epl_player_stats_MD21_2 <- epl_player_stats_MD21_2 %>% 
-  rename_at(vars(contains("_1")), ~ str_replace(., "_1", "")) %>% 
-  select(-Matches, -Rk)
-  
-
-glimpse(epl_player_stats_MD21_2)
-```
-
-```{r}
-## save
-saveRDS(epl_player_stats_MD21_2, file = glue("{here::here()}/data/epl_player_stats_MD21_2.RDS"))
-epl_player_stats_MD21_2 <- readRDS(file = glue("{here::here()}/data/epl_player_stats_MD21_2.RDS"))
-```
 
 ## clean
 
-
 ```{r}
-epl_player_stats_MD21 <- epl_player_stats_MD21_2 %>%
-  rename(npxG_p90 = `npxG▼_p90`)
-
-epl_player_stats_MD21 %>% 
-  left_join(epl_squad_stats_MD21, by = "Squad") %>% 
-  glimpse()
-```
-
-```{r}
-goal_contribution_clean_df <- epl_player_stats_MD21_2 %>% 
-  left_join(epl_squad_stats_MD21_2, by = "Squad") %>% 
+goal_contribution_clean_df <- buli_player_stats_hinrunde %>% 
+  left_join(buli_squad_stats_hinrunde, by = "Squad") %>% 
   separate(Player, into = c("fullname", "allname"), sep = "\\\\") %>% 
   separate(fullname, into = c("firstname", "lastname"),
            sep = "\\s", extra = "merge",
@@ -213,6 +156,7 @@ goal_contribution_clean_df <- epl_player_stats_MD21_2 %>%
 
 glimpse(goal_contribution_clean_df)
 ```
+
 
 
 ## plot
@@ -294,6 +238,7 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
 goal_contribution_matrix
 ```
 
+
 #### save
 
 ```{r}
@@ -316,6 +261,8 @@ plot_logo
 image_write(image = plot_logo, 
             here::here("Premier League 2019-2020/output/goal_contribution_plot_1920_MD20_logo.png"))
 ```
+
+
 
 
 ### xG 
@@ -368,44 +315,44 @@ xG_xA_per90_plot <- xG_xA_per90 %>%
   filter(Min >= 900) %>% 
   ggplot(aes(xA_p90, npxG_p90)) +
   geom_point(data = xG_xA_per90 %>%
-               filter(xA_p90 < 0.13 | npxG_p90 < 0.29,
+               filter(xA_p90 < 0.15 | npxG_p90 < 0.3,
                       Min >= 900),
              color = "grey20", size = 4, alpha = 0.2) +
   geom_point(data = xG_xA_per90 %>%
-               filter(xA_p90 > 0.13 | npxG_p90 > 0.29,
+               filter(xA_p90 > 0.15 | npxG_p90 > 0.3,
                       Min >= 900),
              color = "red", size = 4) +
-  geom_hline(yintercept = 0.29, color = "red", alpha = 0.6) +
-  geom_vline(xintercept = 0.13, color = "red", alpha = 0.6) +
+  geom_hline(yintercept = 0.3, color = "red", alpha = 0.6) +
+  geom_vline(xintercept = 0.15, color = "red", alpha = 0.6) +
   geom_text_repel(
     data = xG_xA_per90 %>%
-      filter(xA_p90 > 0.13 | npxG_p90 > 0.29, 
+      filter(xA_p90 > 0.15 | npxG_p90 > 0.3,
              !player %in% c("G. Jesus", "R. Sterling", "S. Agüero",
                             "R. Mahrez", "K. De Bruyne", "S. Mané"),
              Min >= 900),
-    aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
-    seed = 15, size = 3.5, 
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+    seed = 15, size = 3.5,
     min.segment.length = 0, segment.color = "red",
     point.padding = 0.5) +
-  geom_text(
-    data = xG_xA_per90 %>%
-      filter(player == "S. Mané"),
-    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
-    size = 3.5, nudge_y = -0.015) +
-  geom_text(
-    data = xG_xA_per90 %>%
-      filter(player == "R. Sterling"),
-    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
-    size = 4.5, nudge_x = 0.03, nudge_y = 0.025,
-    color = "#6CABDD") +
-  geom_text_repel(
-    data = xG_xA_per90 %>%
-      filter(player %in% c("S. Agüero",
-                           "R. Mahrez", "K. De Bruyne")),
-    aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
-    seed = 15, size = 4.5, color = "#6CABDD",
-    min.segment.length = 0, segment.color = "red",
-    point.padding = unit(3, "mm")) +
+  # geom_text(
+  #   data = xG_xA_per90 %>%
+  #     filter(player == "S. Mané"),
+  #   aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+  #   size = 3.5, nudge_y = -0.015) +
+  # geom_text(
+  #   data = xG_xA_per90 %>%
+  #     filter(player == "R. Sterling"),
+  #   aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+  #   size = 4.5, nudge_x = 0.03, nudge_y = 0.025,
+  #   color = "#6CABDD") +
+  # geom_text_repel(
+  #   data = xG_xA_per90 %>%
+  #     filter(player %in% c("S. Agüero",
+  #                          "R. Mahrez", "K. De Bruyne")),
+  #   aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
+  #   seed = 15, size = 4.5, color = "#6CABDD",
+  #   min.segment.length = 0, segment.color = "red",
+  #   point.padding = unit(3, "mm")) +
   geom_mark_circle(
     aes(filter = player == "G. Jesus",
         label = "Gabi Jesus: The Finisher",
@@ -485,4 +432,10 @@ plot_logo
 image_write(image = plot_logo, 
             here::here("Premier League 2019-2020/output/xA_xG_per90_1920_MD21_logo.png"))
 ```
+
+
+
+
+
+
 
