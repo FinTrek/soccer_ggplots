@@ -161,55 +161,73 @@ glimpse(goal_contribution_clean_df)
 
 ## plot
 
+```{r}
+goal_contribution_clean_df %>% 
+  filter(Min >= 900,
+         Pos %in% c("FW", "FWMF")) %>% 
+  summarize(avg_goal_contrib = median(goal_contrib),
+            avg_assist_contrib = median(assist_contrib))
+```
+
+
 ### goals & assists
 
 
-```{r fig.width = 11, fig.height = 9}  
+```{r fig.width = 14, fig.height = 10}  
 ## Description text
-desc_raul <- "El Lobo Alfa: With 8 goals (7.6 xG) & 6 assists (4.5 xA) Raúl Jiménez has been the fulcrum of Wolves' push for the Champions League."
+desc_andersson <- "Union Berlin had a rought start to their maiden Bundesliga season but Andersson stepped up to scoring vitals goals in wins against fellow relegation candidates like Mainz and FC Köln"
 
-desc_aubaings <- "S.O.S., Help Needed: Scoring 50% (HALF!) of their team's goals, Ings (0.55 xG per 90, 5th best in the league) & Auba (0.52 xG per 90, 10th) keep their team's hopes alive!"
+desc_weghorst <- "With "
 
-desc_buendia <- "One of the few bright lights in the Canaries' season, Buendía has impressed with 6 assists & 0.32 xA per 90 (4th best in the league)!"
+desc_nieder <- "Niederlechner is on course to beat his best Bundesliga season (11 Goals | 3 Assists with Freiburg in 16/17) by quite a margin with 8 goals and 6 assists so far. His total contribution (goals and assists) equals to half of Augburg's goals in the hinrunde."
+
+desc_volland <- "Volland is the fulcrum of Leverkusen's bid for a consecutive appearance in the Champions League with 5 goals and 6 assists. He tallied up 0.45 xG per 90 (11th in the league) and 0.28 xA per 90 (10th) in the Hinrunde."
 
 ## PLOT!
 goal_contribution_matrix <- goal_contribution_clean_df %>% 
   ggplot(aes(assist_contrib, goal_contrib)) +
   geom_point(data = goal_contribution_clean_df %>%
-               filter(goal_contrib < 0.2 | assist_contrib < 0.2),
+               filter(goal_contrib < 0.2 | assist_contrib < 0.15),
              color = "grey20", size = 4, alpha = 0.2) +
   geom_point(data = goal_contribution_clean_df %>%
                filter(goal_contrib > 0.2 | assist_contrib > 0.15),
              color = "red", size = 4) +
-  geom_hline(yintercept = 0.2, color = "grey20", alpha = 0.4) +
-  geom_vline(xintercept = 0.15, color = "grey20", alpha = 0.4) +
+  geom_hline(yintercept = 0.157, color = "grey20", alpha = 0.4) +
+  geom_vline(xintercept = 0.08, color = "grey20", alpha = 0.4) +
   geom_text_repel(
     data = goal_contribution_clean_df %>%
       filter(goal_contrib > 0.2 | assist_contrib > 0.15, 
-             !player %in% c("R. Jiménez", "P. Aubameyang", 
-                            "D. Ings", "E. Buendía")),
+             !player %in% c("S. Andersson", "W. Weghorst", 
+                            "F. Niederlechner", "K. Volland")),
     aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
     seed = 15, size = 4, 
     min.segment.length = 0, segment.color = "red",
     point.padding = 0.5) +
   geom_mark_circle(
-    aes(filter = player == "R. Jiménez", 
-        label = "Raúl Jiménez",
-        description = desc_raul), 
-    label.width = unit(90, 'mm'), label.buffer = unit(5, "mm"),
+    aes(filter = player == "S. Andersson", 
+        label = "Sebastian Andersson",
+        description = desc_andersson), 
+    label.width = unit(65, 'mm'), label.buffer = unit(5, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
   geom_mark_hull(
-    aes(filter = player %in% c("P. Aubameyang", "D. Ings"), 
-        label = "Auba & Ings",
-        description = desc_aubaings),
-    label.buffer = unit(5, "mm"), label.fontsize = c(14, 11),
+    aes(filter = player == "W. Weghorst", 
+        label = "Wout Weghorst",
+        description = desc_weghorst),
+    label.width = unit(45, 'mm'), label.buffer = unit(5, "mm"), label.fontsize = c(14, 11),
     label.family = "Roboto Condensed") +
   geom_mark_hull(
-    aes(filter = player == "E. Buendía", 
-        label = "Emi Buendía",
-        description = desc_buendia), 
+    aes(filter = player == "F. Niederlechner", 
+        label = "Florian Niederlechner",
+        description = desc_nieder), 
     concavity = 1,
-    label.width = unit(65, 'mm'), label.buffer = unit(0.5, "mm"),
+    label.width = unit(55, 'mm'), label.buffer = unit(0.1, "mm"),
+    label.fontsize = c(14, 12), label.family = "Roboto Condensed") +
+  geom_mark_hull(
+    aes(filter = player == "K. Volland", 
+        label = "Kevin Volland",
+        description = desc_volland), 
+    concavity = 1,
+    label.width = unit(65, 'mm'), label.buffer = unit(40.5, "mm"),
     label.fontsize = c(14, 12), label.family = "Roboto Condensed") +
   scale_x_continuous(labels = percent_format(accuracy = 1), 
                      breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3),
@@ -217,10 +235,10 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
   scale_y_continuous(labels = percent_format(accuracy = 1), 
                      breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
                      limits = c(0, 0.57)) +
-  labs(title = "Goal Involvement: <b style='color: #38003c'>Premier League</b> (2019-2020 Season)", 
+  labs(title = "Goal Involvement: <b style='color: red'>Bundesliga</b> (2019-2020 Season)", 
        subtitle = glue("
                        Goal Involvement (Goals or Assists) as Percentage of Total Club Goals
-                       Matchday 20 | January 1st, 2020"),
+                       Hinrunde | January 13th, 2020"),
        caption = glue("
                       Data: FBref | StatsBomb
                       Ryo Nakagawara, Twitter: @R_by_Ryo"),
@@ -237,6 +255,78 @@ goal_contribution_matrix <- goal_contribution_clean_df %>%
 
 goal_contribution_matrix
 ```
+
+
+
+```{r fig.width = 14, fig.height = 10}  
+## Description text
+desc_labels <- c(
+"Union Berlin had a rought start to their maiden Bundesliga season but Andersson stepped up to scoring vitals goals in wins against fellow relegation candidates like Mainz and FC Köln",
+
+"With ",
+
+"Niederlechner is on course to beat his best Bundesliga season (11 Goals | 3 Assists with Freiburg in 16/17) by quite a margin with 8 goals and 6 assists so far. His total contribution (goals and assists) equals to half of Augburg's goals in the hinrunde.",
+
+"Volland is the fulcrum of Leverkusen's bid for a consecutive appearance in the Champions League with 5 goals and 6 assists. He tallied up 0.45 xG per 90 (11th in the league) and 0.28 xA per 90 (10th) in the Hinrunde.")
+
+## PLOT!
+goal_contribution_matrix <- goal_contribution_clean_df %>% 
+  ggplot(aes(assist_contrib, goal_contrib)) +
+  geom_point(data = goal_contribution_clean_df %>%
+               filter(goal_contrib < 0.2 | assist_contrib < 0.15),
+             color = "grey20", size = 4, alpha = 0.2) +
+  geom_point(data = goal_contribution_clean_df %>%
+               filter(goal_contrib > 0.2 | assist_contrib > 0.15),
+             color = "red", size = 4) +
+  geom_hline(yintercept = 0.157, color = "grey20", alpha = 0.4) +
+  geom_vline(xintercept = 0.08, color = "grey20", alpha = 0.4) +
+  geom_text_repel(
+    data = goal_contribution_clean_df %>%
+      filter(goal_contrib > 0.2 | assist_contrib > 0.15, 
+             !player %in% c("S. Andersson", "W. Weghorst", 
+                            "F. Niederlechner", "K. Volland")),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
+    seed = 15, size = 4, 
+    min.segment.length = 0, segment.color = "red",
+    point.padding = 0.5) +
+  geom_mark_circle(
+    aes(filter = player %in% c("S. Andersson", "W. Weghorst", 
+                            "F. Niederlechner", "K. Volland"), 
+        description = desc_labels), 
+    label.width = unit(65, 'mm'), label.buffer = unit(5, "mm"),
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12)) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), 
+                     breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3),
+                     limits = c(0, 0.35)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), 
+                     breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+                     limits = c(0, 0.57)) +
+  labs(title = "Goal Involvement: <b style='color: red'>Bundesliga</b> (2019-2020 Season)", 
+       subtitle = glue("
+                       Goal Involvement (Goals or Assists) as Percentage of Total Club Goals
+                       Hinrunde | January 13th, 2020"),
+       caption = glue("
+                      Data: FBref | StatsBomb
+                      Ryo Nakagawara, Twitter: @R_by_Ryo"),
+       x = "Percentage of Club Goals Assisted",
+       y = "Percentage of Club Goals Scored") +
+  theme_minimal() +
+  theme(text = element_markdown(family = "Roboto Condensed"),
+        plot.title = element_markdown(size = 20),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank())
+
+goal_contribution_matrix
+```
+
+
+
+
+
+
 
 
 #### save
@@ -302,7 +392,7 @@ xG_xA_per90 %>%
 - lots of attacking fullbacks in bottom: Trent, Robbo, Chilwell, Azpi, Max Aarons, Digne, Matt Targett
 
 ```{r}
-desc_jesus <- "Jesus leads the league with 0.87 np-xG per 90, however, until the Everton game he had only converted 6 goals from 8.5 xG. Now he has improved to 8 goals from 9.6 np-xG!"
+desc_jesus <- "Despite a rocky start to the season and the eventual firing of Niko Kovac, Bayern maintained great attacking output mainly through Robert Lewandowski's unreal finishing! Thomas Müller, who had been frozen out by Kovac, got back to form under new manager Hansi Flick."
 
 desc_aguero_sterling <- "With only 1 goal in the last 6 league games City is in desperate need for Aguero to get firing again as his 8 np-Goals from 6.6 np-xG is more clinical than Gabriel Jesus. Raheem Sterling is City's top scorer with 11 goals from 8.7 np-xG and is in the top 10 for xG and xA per 90 showing his dual threat."
 
@@ -312,6 +402,141 @@ desc_mahrez_debruyne <- "Mahrez & De Bruyne create the chances that Sterling, Ag
 
 ```{r fig.width = 12, fig.height = 10}
 xG_xA_per90_plot <- xG_xA_per90 %>% 
+  filter(Min >= 900) %>% 
+  ggplot(aes(xA_p90, npxG_p90)) +
+  geom_point(data = xG_xA_per90 %>%
+               filter(xA_p90 < 0.15 | npxG_p90 < 0.3,
+                      Min >= 900),
+             color = "grey20", size = 4, alpha = 0.2) +
+  geom_point(data = xG_xA_per90 %>%
+               filter(xA_p90 > 0.15 | npxG_p90 > 0.3,
+                      Min >= 900),
+             color = "red", size = 4) +
+  geom_hline(yintercept = 0.3, color = "red", alpha = 0.6) +
+  geom_vline(xintercept = 0.15, color = "red", alpha = 0.6) +
+  ## All player labels
+  geom_text_repel(
+    data = xG_xA_per90 %>%
+      filter(xA_p90 > 0.15 | npxG_p90 > 0.3,
+             !player %in% c("R. Lewandowski", 
+                            "S. Gnabry", "T. Müller",
+                            "M. Thuram", 
+                            "B. Embolo", "A. Pléa",
+                            "K. Volland", 
+                            "F. Niederlechner",
+                            "T. Werner"),
+             Min >= 900),
+    aes(label = player, family = "Roboto Condensed", 
+        fontface = "bold"),
+    seed = 15, size = 3.5,
+    min.segment.length = 0, segment.color = "red",
+    point.padding = 0.5) +
+  ## Bayern player labels
+  geom_text_repel(
+    data = xG_xA_per90 %>%
+      filter(player %in% c("R. Lewandowski", 
+                            "S. Gnabry", "T. Müller")),
+    aes(label = player, family = "Roboto Condensed", 
+        fontface = "bold"),
+    seed = 15, size = 4.5, color = "red",
+    min.segment.length = 0, segment.color = "red",
+    point.padding = 0.5, nudge_y = 0.05) +
+  ## Gladbach player labels
+  geom_text_repel(
+    data = xG_xA_per90 %>%
+      filter(player %in% c("M. Thuram", 
+                           "B. Embolo", "A. Pléa")),
+    aes(label = player, family = "Roboto Condensed", 
+        fontface = "bold"),
+    seed = 15, size = 4.5, color = "#228B22",
+    min.segment.length = 0, segment.color = NA,
+    point.padding = 0.3) +
+  # geom_text(
+  #   data = xG_xA_per90 %>%
+  #     filter(player == "R. Sterling"),
+  #   aes(label = player, family = "Roboto Condensed", 
+  #       fontface = "bold"),
+  #   size = 4.5, nudge_x = 0.03, nudge_y = 0.025,
+  #   color = "#6CABDD") +
+  # geom_text_repel(
+  #   data = xG_xA_per90 %>%
+  #     filter(player %in% c("S. Agüero",
+  #                          "R. Mahrez", "K. De Bruyne")),
+  #   aes(label = player, family = "Roboto Condensed", 
+  #       fontface = "bold"),
+  #   seed = 15, size = 4.5, color = "#6CABDD",
+  #   min.segment.length = 0, segment.color = "red",
+  #   point.padding = unit(3, "mm")) +
+  ## Bayern description
+  geom_mark_hull(
+    aes(filter = player %in% c("R. Lewandowski", 
+                               "S. Gnabry", 
+                               "T. Müller"),
+        label = "Bayern's Attack Remains Strong.",
+        description = desc_jesus),
+    expand = unit(2.5, "mm"),
+    label.width = unit(90, 'mm'), label.buffer = unit(5, "mm"),
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12),
+    label.colour = c("red", "black")) +
+  ## Gladbach description
+  geom_mark_hull(
+    aes(filter = player %in% c("M. Thuram", 
+                               "B. Embolo"), 
+        label = "Gladbach's Attacking Trio",
+        description = desc_aguero_sterling),
+    expand = unit(0.05, "mm"), label.width = unit(60, 'mm'),
+    label.buffer = unit(30, "mm"), label.fontsize = c(14, 11),
+    label.family = "Roboto Condensed", 
+    label.colour = c("#228B22", "black")) +
+  geom_mark_circle(
+    aes(filter = player == "A. Pléa"),
+    expand = unit(3, "mm"), label.width = unit(50, 'mm'),
+    label.buffer = unit(30, "mm"), label.fontsize = c(14, 11),
+    label.family = "Roboto Condensed", 
+    label.colour = c("#228B22", "black")) +
+  ## Gladbach desc.
+  annotate("text", family = "Roboto Condensed", 
+           fontface = "bold",
+           x = 0.37, y = 0.4, 
+           label = "blargh blargh") +
+  ## xG and xA league average
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 0.15, y = 0.935, hjust = 0, color = "red",
+           label = "Average xA per 90: 0.15") +
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 0.59, y = 0.29, color = "red",
+           label = "Average np-xG per 90: 0.3") +
+  scale_x_continuous(labels = seq(0, 0.9, 0.1), 
+                     breaks = seq(0, 0.9, 0.1),
+                     limits = c(0, 0.65)) +
+  scale_y_continuous(labels = seq(0, 0.9, 0.1), 
+                     breaks = seq(0, 0.9, 0.1),
+                     limits = c(0, 0.95)) +
+  labs(title = "<b style='color: #6CABDD'>City's Attackers </b> Dominate the 'Expected' Stats: xG per 90 & xA per 90", 
+       subtitle = glue("
+                       Bundesliga (2019-2020 Season) | Hinrunde | January 13th, 2020
+                       <p><b style='color: red'>Average (Median)</b> for Midfielders/Forwards | Minimum 900 Minutes Played"),
+       caption = glue("
+                      Data: FBref | StatsBomb
+                      Ryo Nakagawara, Twitter: @R_by_Ryo"),
+       x = "Expected Assists (xA) per 90",
+       y = "non-Penalty Expected Goals (np-xG) per 90") +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        plot.title = element_markdown(size = 18),
+        plot.subtitle = element_markdown(size = 16),
+        plot.caption = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank())
+
+xG_xA_per90_plot
+```
+
+
+
+```{r fig.width = 12, fig.height = 10}
+xG_xA_per90 %>% 
   filter(Min >= 900) %>% 
   ggplot(aes(xA_p90, npxG_p90)) +
   geom_point(data = xG_xA_per90 %>%
@@ -334,80 +559,23 @@ xG_xA_per90_plot <- xG_xA_per90 %>%
     seed = 15, size = 3.5,
     min.segment.length = 0, segment.color = "red",
     point.padding = 0.5) +
-  # geom_text(
-  #   data = xG_xA_per90 %>%
-  #     filter(player == "S. Mané"),
-  #   aes(label = player, family = "Roboto Condensed", fontface = "bold"),
-  #   size = 3.5, nudge_y = -0.015) +
-  # geom_text(
-  #   data = xG_xA_per90 %>%
-  #     filter(player == "R. Sterling"),
-  #   aes(label = player, family = "Roboto Condensed", fontface = "bold"),
-  #   size = 4.5, nudge_x = 0.03, nudge_y = 0.025,
-  #   color = "#6CABDD") +
-  # geom_text_repel(
-  #   data = xG_xA_per90 %>%
-  #     filter(player %in% c("S. Agüero",
-  #                          "R. Mahrez", "K. De Bruyne")),
-  #   aes(label = player, family = "Roboto Condensed", fontface = "bold"), 
-  #   seed = 15, size = 4.5, color = "#6CABDD",
-  #   min.segment.length = 0, segment.color = "red",
-  #   point.padding = unit(3, "mm")) +
-  geom_mark_circle(
-    aes(filter = player == "G. Jesus",
-        label = "Gabi Jesus: The Finisher",
-        description = desc_jesus),
-    label.width = unit(60, 'mm'), label.buffer = unit(5, "mm"),
-    label.family = "Roboto Condensed", label.fontsize = c(14, 12),
-    label.colour = c("#6CABDD", "black")) +
   geom_mark_hull(
-    aes(filter = player %in% c("R. Sterling", "S. Agüero"), 
-        label = "City's Hybrid Threats",
+    aes(filter = player %in% c("M. Thuram", 
+                               "B. Embolo"), 
+        label = "Gladbach's Attacking Trio",
         description = desc_aguero_sterling),
-    expand = unit(0.05, "mm"), label.width = unit(80, 'mm'),
-    label.buffer = unit(20, "mm"), label.fontsize = c(14, 11),
+    expand = unit(0.05, "mm"), label.width = unit(60, 'mm'),
+    label.buffer = unit(30, "mm"), label.fontsize = c(14, 11),
     label.family = "Roboto Condensed", 
-    label.colour = c("#6CABDD", "black")) +
-  geom_mark_hull(
-    aes(filter = player %in% c("R. Mahrez", "K. De Bruyne"),
-        label = "City's Creators-in-Chief",
-        description = desc_mahrez_debruyne),
-    expand = unit(2.22, "mm"), label.width = unit(100, 'mm'),
-    label.buffer = unit(10, "mm"), label.fontsize = c(14, 11),
+    label.colour = c("green", "black")) +
+  geom_mark_circle(
+    aes(filter = player == "A. Pléa"),
+    expand = unit(3, "mm"), label.width = unit(50, 'mm'),
+    label.buffer = unit(30, "mm"), label.fontsize = c(14, 11),
     label.family = "Roboto Condensed", 
-    label.colour = c("#6CABDD", "black")) +
-  annotate("text", family = "Roboto Condensed", fontface = "bold",
-           x = 0.132, y = 0.9, hjust = 0, color = "red",
-           label = "Average xA per 90: 0.14") +
-  annotate("text", family = "Roboto Condensed", fontface = "bold",
-           x = 0.57, y = 0.3, color = "red",
-           label = "Average np-xG per 90: 0.29") +
-  scale_x_continuous(labels = seq(0, 0.9, 0.1), 
-                     breaks = seq(0, 0.9, 0.1),
-                     limits = c(0, 0.65)) +
-  scale_y_continuous(labels = seq(0, 0.9, 0.1), 
-                     breaks = seq(0, 0.9, 0.1),
-                     limits = c(0, 0.9)) +
-  labs(title = "<b style='color: #6CABDD'>City's Attackers </b> Dominate the 'Expected' Stats: xG per 90 & xA per 90", 
-       subtitle = glue("
-                       Premier League (2019-2020 Season) | Matchday 21 | January 3rd, 2020
-                       <p><b style='color: red'>Average (Median)</b> for Midfielders/Forwards | Minimum 900 Minutes Played"),
-       caption = glue("
-                      Data: FBref | StatsBomb
-                      Ryo Nakagawara, Twitter: @R_by_Ryo"),
-       x = "Expected Assists (xA) per 90",
-       y = "non-Penalty Expected Goals (np-xG) per 90") +
-  theme_minimal() +
-  theme(text = element_text(family = "Roboto Condensed"),
-        plot.title = element_markdown(size = 18),
-        plot.subtitle = element_markdown(size = 16),
-        plot.caption = element_text(size = 14),
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        panel.grid.minor.x = element_blank())
-
-xG_xA_per90_plot
+    label.colour = c("green", "black"))
 ```
+
 
 
 #### save
