@@ -72,8 +72,6 @@ add_logo <- function(plot_path, logo_path, logo_position,
 
 # Bundesliga data
 
-## fbref
-
 - Save "Player Standard Stats" & "Squad Standard Stats" as a `.csv` file or whatever you prefer.
 - https://fbref.com/en/comps/20/passing/Bundesliga-Stats
 
@@ -185,9 +183,21 @@ buli_pass_df <- buli_player_passing_hinrunde_clean %>%
   filter(min >= 900)
 ```
 
+```{r}
+bayern_desc <- "Both Kimmich & Alaba have been playing much more centrally this season (Center Midfield & Center Back respectively) the former only behind teammate Coutinho and Brandt in Passes into the Penalty Area per 90 with the latter leading the league with 9.83 Passes into the Final 3rd per 90. Thiago keeps things ticking with a 90.2% Pass Accuracy."
+
+brandt_desc <- "Julian Brandt has become the primary ball progressor in this Dortmund side with his 2.99 PPA per 90 leading the league by a considerable margin. A lot of this comes from his throughballs (0.68 TB per 90, 1st in the league). Along with his 30th ranking in both Final Third Passes per 90 & xA per 90 it shows that he provides that incisive ball in between the build-up & the final pass. Indeed, his KP per 90 is 47th in the league."
+```
+
+Kimmich:
+
+Alaba:
+
+
+Brandt: 0.68 TB per 90 (1st), 2.99 PPA per 90 (1st), 4.1 Final Third per 90 (30th), 0.19 xA per 90 (30th)
 
 ```{r  fig.width = 14, fig.height = 10}
-ggplot(buli_pass_df, 
+buli_progressive_pass_hinrunde_plot <- ggplot(buli_pass_df, 
        aes(x = finalthirdper90, y = PPAper90)) +
   ## area fills
   geom_rect(data = chance_creation_box,
@@ -240,7 +250,7 @@ ggplot(buli_pass_df,
   geom_text_repel(
     data = buli_player_passing_hinrunde_clean %>% 
       filter(min >= 900, 
-             finalthirdper90 > 4 | PPAper90 > 1.2,
+             finalthirdper90 > 3.75 | PPAper90 > 1.2,
              !player %in% c("J. Kimmich", 
                             "D. Alaba", 
                             "T. Alcántara",
@@ -257,19 +267,19 @@ ggplot(buli_pass_df,
                                "D. Alaba", 
                                "T. Alcántara",
                                "P. Coutinho"),
-        label = "Bayern's Attack Remains Strong.",
-        description = "blargh"),
+        label = "Bayern's Passing Maestros.",
+        description = bayern_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
-    label.width = unit(80, 'mm'), label.buffer = unit(25, "mm"),
+    label.width = unit(170, 'mm'), label.buffer = unit(10, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") +
   ## Brandt description #7fbf7f #b2d8b2
   geom_mark_hull(
     aes(filter = player %in% c("J. Brandt"),
-        label = "Julian Brandt: BVB's Elite Ball Progressor",
-        description = "blargh"),
+        label = "Julian Brandt: BVB's Elite Ball Progressor.",
+        description = brandt_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
-    label.width = unit(80, 'mm'), label.buffer = unit(5, "mm"),
+    label.width = unit(250, 'mm'), label.buffer = unit(1, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") + 
   ## Bayern player labels
@@ -309,11 +319,34 @@ ggplot(buli_pass_df,
         plot.caption = element_text(size = 14),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 12))
+
+buli_progressive_pass_hinrunde_plot
 ```
 
+N. Gießelmann, Kostic, Diego Demme, Florian Neuhaus, Coray Gunter
 
+## save
 
+```{r}
+ggsave(plot = buli_progressive_pass_hinrunde_plot, 
+       here::here("Bundesliga 2019-2020/output/buli_progressive_pass_1920_hinrunde.png"),
+       height = 10, width = 14)
+```
 
+```{r}
+plot_logo <- add_logo(
+  plot_path = here::here("Bundesliga 2019-2020/output/buli_progressive_pass_1920_hinrunde.png"),
+  logo_path = here::here("../soccer_match_reports/img/Bundesliga_logo_(2017).svg"),
+  logo_position = "top right",
+  logo_scale = 18)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, 
+            here::here("Bundesliga 2019-2020/output/buli_progressive_pass_1920_hinrunde_logo.png"))
+```
 
 
 
