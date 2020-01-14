@@ -143,6 +143,143 @@ buli_player_passing_hinrunde_clean <- readRDS(
 
 
 
+# plot
+
+
+```{r}
+buli_player_passing_hinrunde_clean %>% 
+  filter(min >= 900) %>% 
+  summarize(avg_f3per90 = median(finalthirdper90),
+            avg_PPAper90 = median(PPAper90))
+
+buli_player_passing_hinrunde_clean %>% 
+  filter(min >= 900,
+         Pos %in% c("FW", "FWMF")) %>% 
+  summarize(avg_f3per90 = median(finalthirdper90),
+            avg_PPAper90 = median(PPAper90))
+```
+
+- when filtering for FW/Attacking MFs, F3 falls and PPA rises - fairly self-explanatory and reasonable
+
+```{r}
+bad_box <- data.frame(
+  xmin = -Inf, xmax = 2.5, 
+  ymin = -Inf, ymax = 0.48)
+
+chance_creation_box <- data.frame(
+  xmin = -Inf, xmax = 2.5, 
+  ymin = 0.48, ymax = Inf)
+
+midfield_progress_box <- data.frame(
+  xmin = 2.5, xmax = Inf, 
+  ymin = -Inf, ymax = 0.48)
+
+dual_box <- data.frame(
+  xmin = 2.5, xmax = Inf, 
+  ymin = 0.48, ymax = Inf)
+```
+
+
+```{r}
+buli_pass_df <- buli_player_passing_hinrunde_clean %>% 
+  filter(min >= 900)
+```
+
+
+```{r  fig.width = 14, fig.height = 10}
+ggplot(buli_pass_df, 
+       aes(x = finalthirdper90, y = PPAper90)) +
+  ## area fills
+  geom_rect(data = chance_creation_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "yellow", alpha = 0.3) +
+  geom_rect(data = bad_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "red", alpha = 0.3) +
+  geom_rect(data = midfield_progress_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "orange", alpha = 0.3) +
+  geom_rect(data = dual_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "green", alpha = 0.3) +
+  ## median reference lines
+  geom_hline(yintercept = 0.48, color = "grey20", alpha = 0.4) +
+  geom_vline(xintercept = 2.5, color = "grey20", alpha = 0.4) +
+  ## player data
+  geom_point(color = "red", size = 3) +
+  ## league average
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 2.6, y = 3.8, hjust = 0, color = "grey20",
+           label = "Average OP Passes into the Final Third per 90: 2.5") +
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 9.2, y = 0.44, hjust = 0, color = "grey20",
+           label = "Average OP Passes into Penalty Area per 90: 0.48") +
+  ## area labels
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 0.25, y = 3.8, 
+           hjust = 0, color = "grey20", size = 6,
+           label = "Good Chance Creation") +
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = 9.2, y = 0.2, 
+           hjust = 0, color = "grey20", size = 6,
+           label = "Good Midfield Progression") +
+  annotate(
+    "text", family = "Roboto Condensed", fontface = "bold",
+    x = 9.2, y = 3.8, 
+    hjust = 0, color = "grey20", size = 6,
+    label = "Good Chance Creation\nGood Midfield Progression") +
+  ## player labels
+  geom_text_repel(
+    data = buli_player_passing_hinrunde_clean %>% 
+      filter(min >= 900, 
+             finalthirdper90 > 4 | PPAper90 > 1.2),
+    aes(label = player, family = "Roboto Condensed", 
+        fontface = "bold"),
+    min.segment.length = 0.3, seed = 15, size = 3.5,
+    segment.color = "red", point.padding = 0.5) +
+  ## scales
+  scale_x_continuous(labels = seq(0, 12, 1), 
+                     breaks = seq(0, 12, 1),
+                     limits = c(0, 12),
+                     expand = c(0.01, 0)) +
+  scale_y_continuous(labels = seq(0, 4, 0.5), 
+                     breaks = seq(0, 4, 0.5),
+                     limits = c(0, 4),
+                     expand = c(0.01, 0)) +
+  labs(title = "Progressive Passers: <b style='color: red'>Bundesliga</b>", 
+       subtitle = glue("
+                       Bundesliga (2019-2020) | Hinrunde | January 15th, 2020
+                       <p><b style='color: black'>Average (Median)</b> | Minimum 900 Minutes Played"),
+       caption = glue("
+                      Data: FBref | StatsBomb
+                      Ryo Nakagawara, Twitter: @R_by_Ryo"),
+       x = "Open Play Passes into Final Third per 90",
+       y = "Open Play Passes into Penalty Area per 90") +
+  theme_minimal() +
+  theme(text = element_markdown(family = "Roboto Condensed"),
+        plot.title = element_markdown(size = 20),
+        plot.subtitle = element_markdown(size = 16),
+        plot.caption = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12))
+```
+
+
+
+
+
+
+
+
+
 
 
 
