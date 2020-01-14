@@ -194,22 +194,22 @@ ggplot(buli_pass_df,
             aes(x = NULL, y = NULL,
                 xmin = xmin, xmax = xmax,
                 ymin = ymin, ymax = ymax),
-            fill = "yellow", alpha = 0.3) +
+            fill = "yellow", alpha = 0.1) +
   geom_rect(data = bad_box,
             aes(x = NULL, y = NULL,
                 xmin = xmin, xmax = xmax,
                 ymin = ymin, ymax = ymax),
-            fill = "red", alpha = 0.3) +
+            fill = "red", alpha = 0.1) +
   geom_rect(data = midfield_progress_box,
             aes(x = NULL, y = NULL,
                 xmin = xmin, xmax = xmax,
                 ymin = ymin, ymax = ymax),
-            fill = "orange", alpha = 0.3) +
+            fill = "orange", alpha = 0.2) +
   geom_rect(data = dual_box,
             aes(x = NULL, y = NULL,
                 xmin = xmin, xmax = xmax,
                 ymin = ymin, ymax = ymax),
-            fill = "green", alpha = 0.3) +
+            fill = "green", alpha = 0.1) +
   ## median reference lines
   geom_hline(yintercept = 0.48, color = "grey20", alpha = 0.4) +
   geom_vline(xintercept = 2.5, color = "grey20", alpha = 0.4) +
@@ -225,26 +225,65 @@ ggplot(buli_pass_df,
   ## area labels
   annotate("text", family = "Roboto Condensed", fontface = "bold",
            x = 0.25, y = 3.8, 
-           hjust = 0, color = "grey20", size = 6,
+           hjust = 0, color = "#CCCC00", size = 6,
            label = "Good Chance Creation") +
   annotate("text", family = "Roboto Condensed", fontface = "bold",
            x = 9.2, y = 0.2, 
-           hjust = 0, color = "grey20", size = 6,
+           hjust = 0, color = "orange", size = 6,
            label = "Good Midfield Progression") +
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = 9.2, y = 3.8, 
-    hjust = 0, color = "grey20", size = 6,
+    x = 9.2, y = 3.77, 
+    hjust = 0, color = "#228B22", size = 6,
     label = "Good Chance Creation\nGood Midfield Progression") +
   ## player labels
   geom_text_repel(
     data = buli_player_passing_hinrunde_clean %>% 
       filter(min >= 900, 
-             finalthirdper90 > 4 | PPAper90 > 1.2),
+             finalthirdper90 > 4 | PPAper90 > 1.2,
+             !player %in% c("J. Kimmich", 
+                            "D. Alaba", 
+                            "T. Alcántara",
+                            "P. Coutinho",
+                            "J. Brandt")),
     aes(label = player, family = "Roboto Condensed", 
         fontface = "bold"),
     min.segment.length = 0.3, seed = 15, size = 3.5,
-    segment.color = "red", point.padding = 0.5) +
+    segment.color = "red", point.padding = 0.6,
+    color = "grey20") +
+  ## Bayern description
+  geom_mark_hull(
+    aes(filter = player %in% c("J. Kimmich", 
+                               "D. Alaba", 
+                               "T. Alcántara",
+                               "P. Coutinho"),
+        label = "Bayern's Attack Remains Strong.",
+        description = "blargh"),
+    expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
+    label.width = unit(80, 'mm'), label.buffer = unit(25, "mm"),
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12),
+    label.colour = "grey20", label.fill = "#cce5cc") +
+  ## Brandt description #7fbf7f #b2d8b2
+  geom_mark_hull(
+    aes(filter = player %in% c("J. Brandt"),
+        label = "Julian Brandt: BVB's Elite Ball Progressor",
+        description = "blargh"),
+    expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
+    label.width = unit(80, 'mm'), label.buffer = unit(5, "mm"),
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12),
+    label.colour = "grey20", label.fill = "#cce5cc") + 
+  ## Bayern player labels
+  geom_text_repel(
+    data = buli_player_passing_hinrunde_clean %>%
+      filter(player %in% c("J. Kimmich", 
+                               "D. Alaba", 
+                               "T. Alcántara",
+                               "P. Coutinho")),
+    aes(label = player, family = "Roboto Condensed", 
+        fontface = "bold"),
+    seed = 15, size = 4.5, color = "red",
+    min.segment.length = 0, segment.color = "red",
+    point.padding = 0.5, nudge_x = 0.6) +
   ## scales
   scale_x_continuous(labels = seq(0, 12, 1), 
                      breaks = seq(0, 12, 1),
@@ -257,7 +296,7 @@ ggplot(buli_pass_df,
   labs(title = "Progressive Passers: <b style='color: red'>Bundesliga</b>", 
        subtitle = glue("
                        Bundesliga (2019-2020) | Hinrunde | January 15th, 2020
-                       <p><b style='color: black'>Average (Median)</b> | Minimum 900 Minutes Played"),
+                       <p><b style='color: grey20'>Average (Median)</b> | Minimum 900 Minutes Played"),
        caption = glue("
                       Data: FBref | StatsBomb
                       Ryo Nakagawara, Twitter: @R_by_Ryo"),
