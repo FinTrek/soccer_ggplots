@@ -28,6 +28,7 @@
 - [Part 3: Animating the Goals of the World Cup!](https://ryo-n7.github.io/2018-07-24-visualize-worldcup-part-3/)
 
 ### rmarkdown/scripts/gists
+- Progressive Passers - Bundesliga: [Gist](https://gist.github.com/Ryo-N7/756a73410c97753284a39260928ea813)
 - World Cup Goal Plots (static): `World Cup/RMarkdown/worldcup_goal_plots.rmd`
 - Animated World Cup Goals: Most up-to-date is in the [blog post](https://ryo-n7.github.io/2018-07-24-visualize-worldcup-part-3/)
 - Group Table Final Matchday: `World Cup/RMarkdown/group_table_final_matchday.rmd`
@@ -46,6 +47,10 @@
 - [Youtube Recording of Tokyo.R Presentation](https://www.youtube.com/watch?v=tNncHFd5dVo)
 
 ### Examples: 
+
+## Progressive Passers: Bundesliga (2019-2020)
+
+<img src="https://i.imgur.com/21HNfhd.png" width="600"/>
 
 ## xG Match Summary
 <img src="https://i.imgur.com/K2AMWnG.png" width="600"/>
