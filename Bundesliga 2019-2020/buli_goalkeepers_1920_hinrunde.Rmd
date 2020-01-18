@@ -195,19 +195,19 @@ buli_player_goalkeeping_hinrunde_clean %>%
 
 ```{r}
 bad_box <- data.frame(
-  xmin = -Inf, xmax = -0.017, 
+  xmin = -Inf, xmax = 0, 
   ymin = -Inf, ymax = 28.86)
 
 chance_creation_box <- data.frame(
-  xmin = -Inf, xmax = -0.017, 
+  xmin = -Inf, xmax = 0, 
   ymin = 28.86, ymax = Inf)
 
 midfield_progress_box <- data.frame(
-  xmin = -0.017, xmax = Inf, 
+  xmin = 0, xmax = Inf, 
   ymin = -Inf, ymax = 28.86)
 
 dual_box <- data.frame(
-  xmin = -0.017, xmax = Inf, 
+  xmin = 0, xmax = Inf, 
   ymin = 28.86, ymax = Inf)
 ```
 
@@ -247,10 +247,10 @@ buli_player_goalkeeping_hinrunde_clean %>%
 buli_gk <- buli_player_goalkeeping_hinrunde_clean %>% 
   filter(min >= 900) %>% 
   mutate(fillcol = case_when(
-    GSAA_perc < -0.017 & minPerSave < 28.86 ~ "red",
-    GSAA_perc > -0.017 & minPerSave < 28.86 ~ "yellow",
-    GSAA_perc < -0.017 & minPerSave > 28.86 ~ "orange",
-    GSAA_perc > -0.017 & minPerSave > 28.86 ~ "green",
+    GSAA_perc < 0 & minPerSave < 28.86 ~ "red",
+    GSAA_perc > 0 & minPerSave < 28.86 ~ "yellow",
+    GSAA_perc < 0 & minPerSave > 28.86 ~ "orange",
+    GSAA_perc > 0 & minPerSave > 28.86 ~ "green",
     TRUE ~ NA_character_))
 ```
 
@@ -260,10 +260,21 @@ point_cols <- c("yellow" = "yellow", "red" = "red",
 ```
 
 
+```{r}
+sommer_desc <- ""
+
+burki_desc <- ""
+
+pavlenka_desc <- ""
+```
+
+
+
+
 ```{r fig.width = 14, fig.height = 10}
 buli_gk %>% 
   ggplot(aes(x = GSAA_perc, y = minPerSave)) +
-  geom_vline(xintercept = -0.017) +
+  #geom_vline(xintercept = -0.017) +
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 28.86) +
   ## area fills
@@ -296,7 +307,7 @@ buli_gk %>%
            x = -0.2, y = 58, 
            hjust = 0, color = "orange", size = 6,
            label = "Not Busy & Saving Less Than Average GK") +
-  annotate(
+  annotate( # #7f7f00  #228B22 #CCCC00
     "text", family = "Roboto Condensed", fontface = "bold",
     x = 0.02, y = 58, 
     hjust = 0, color = "#228B22", size = 6,
@@ -304,8 +315,13 @@ buli_gk %>%
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
     x = 0.02, y = 20, 
-    hjust = 0, color = "#CCCC00", size = 6,
+    hjust = 0, color = "#7f7f00", size = 6,
     label = "Busy & Saving More Than Average GK") +
+  annotate(
+    "text", family = "Roboto Condensed", fontface = "bold",
+    x = -0.2, y = 29.5, 
+    hjust = 0, color = "grey20", size = 4,
+    label = "Average: 28.6 Minutes per Save") +
   ## player data
   geom_point(aes(fill = factor(fillcol)), 
              shape = 21, size = 3) +
@@ -323,27 +339,27 @@ buli_gk %>%
   # Bürki
   geom_mark_hull(
     aes(filter = player == "R. Bürki",
-        label = "Roman Bürki",
+        label = "Roman Bürki (Borussia Dortmund)",
         description = "bayern_desc"),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "orange", color = "orange",
-    label.width = unit(70, 'mm'), label.buffer = unit(10, "mm"),
+    label.width = unit(100, 'mm'), label.buffer = unit(10, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
-    label.colour = "grey20", label.fill = "#cce5cc") +
+    label.colour = "grey20", label.fill = "#ffe5cc") +
   # Pavlenka
   geom_mark_hull(
     aes(filter = player == "J. Pavlenka",
-        label = "Jiri Pavlenka",
+        label = "Jiri Pavlenka (Werder Bremen)",
         description = "brandt_desc"),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
-    con.colour = "#228B22", color = "#228B22",
-    label.width = unit(50, 'mm'), label.buffer = unit(1, "mm"),
+    con.colour = "red", color = "red", 
+    label.width = unit(80, 'mm'), label.buffer = unit(0.5, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
-    label.colour = "grey20", label.fill = "#cce5cc") +
+    label.colour = "grey20", label.fill = "#FFCCCC") +
   # Sommer
   geom_mark_hull(
     aes(filter = player == "Y. Sommer",
-        label = "Yann Sommer.",
+        label = "Yann Sommer (Gladbach)",
         description = "brandt_desc"),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     label.width = unit(90, 'mm'), label.buffer = unit(75, "mm"),
@@ -362,7 +378,12 @@ buli_gk %>%
        y = "Average Minutes per Save",
        caption = "Data: FBref | StatsBomb") +
   theme_minimal() +
-  theme(text = element_text(family = "Roboto Condensed"))
+  theme(text = element_text(family = "Roboto Condensed"),
+        plot.title = element_markdown(size = 20),
+        plot.subtitle = element_markdown(size = 16),
+        plot.caption = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12))
 ```
 
 
