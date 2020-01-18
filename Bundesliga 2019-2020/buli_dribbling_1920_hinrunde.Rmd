@@ -193,7 +193,7 @@ buli_dribble_df <- buli_player_dribbling_hinrunde_clean %>%
 
 ```{r}
 point_cols <- c("yellow" = "yellow", "red" = "red",
-                "orange" = "orange", "green" = "green")
+                "orange" = "orange", "green" = "#228B22")
 ```
 
 
@@ -234,7 +234,7 @@ buli_dribbling_hinrunde_plot <- ggplot(
   geom_hline(yintercept = 60.45, color = "grey20", alpha = 0.4) +
   geom_vline(xintercept = 3.35, color = "grey20", alpha = 0.4) +
   ## player data
-  geom_point(aes(color = fillcol), size = 3) +
+  geom_point(aes(color = factor(fillcol)), size = 3) +
   scale_color_manual(values = point_cols) +
   ## league average
   annotate("text", family = "Roboto Condensed", fontface = "bold",
@@ -261,9 +261,11 @@ buli_dribbling_hinrunde_plot <- ggplot(
   geom_text_repel(
     data = buli_dribble_df %>% 
       filter(dribble_attemptPer90 > 2 | dribble_perc > 60.45,
-             !player %in% c("blah")),
+             !player %in% c("J. Sancho", "M. Rashica",
+                            "A. Davies", "T. Alcántara")),
     aes(label = player, family = "Roboto Condensed", 
-        fontface = "bold", segment.color = fillcol),
+        fontface = "bold", 
+        segment.color = factor(fillcol)),
     min.segment.length = 0.3, seed = 15, size = 3.5,
     #segment.color = "red", 
     point.padding = 0.6,
@@ -274,6 +276,7 @@ buli_dribbling_hinrunde_plot <- ggplot(
         label = "Jaden Sancho: Dribble Koenig",
         description = "bayern_desc"),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
+    con.colour = "orange", color = "orange",
     label.width = unit(70, 'mm'), label.buffer = unit(10, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") +
@@ -283,6 +286,7 @@ buli_dribbling_hinrunde_plot <- ggplot(
         label = "Alphonso Davies: Canada's ",
         description = "brandt_desc"),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
+    con.colour = "#228B22", color = "#228B22",
     label.width = unit(50, 'mm'), label.buffer = unit(60, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") +
