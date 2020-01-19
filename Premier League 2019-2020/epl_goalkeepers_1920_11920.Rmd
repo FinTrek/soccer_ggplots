@@ -236,11 +236,11 @@ point_cols <- c("yellow" = "yellow", "red" = "red",
 
 
 ```{r}
-alisson_desc <- "Alisson proving to be the best keeper this season with his 9.96 GSAA % and 83.3% Save %, 0.41 Goals Against per 90 all leading the Premier League by a considerable margin."
+alisson_desc <- "Alisson proving to be the best keeper this season with his 9.96 GSAA %, 83.3 Save %, 0.41 Goals Against per 90 all leading the Premier League by a considerable margin."
 
-kepa_desc <- "Kepa is the least busiest keeper in the league having to only make a save every 50.49 minutes on average yet he has the 4th worst GSAA in the league having given up 5.5 goals on shots that the post-shot model expected an average GK to save."
+kepa_desc <- "Kepa is the least busiest keeper in the league having to only make a save every 50.49 minutes on average yet he has the 3rd worst GSAA in the league having given up 4.9 goals on shots that the post-shot model expected an average GK to save."
 
-gunn_desc <- "Angus Gunn was giving up a league-worst 2.5 Goals Against per 90 and -11.35 GSAA % before he was replaced after the horrendous 0-9 loss to Leicester City. His replacement Alex McCarthy has been doing much better with +2 GSAA % and 1.31 GA per 90!"
+gunn_desc <- "Angus Gunn was giving up a league-worst 2.5 Goals Against per 90 and -11.35 GSAA % before he was replaced after the horrendous 0-9 loss to Leicester City. His replacement Alex McCarthy has been doing much better with +6.6 GSAA % (3rd best in the league) and 1.31 Goals Against per 90!"
 ```
 
 
@@ -328,7 +328,7 @@ epl_goalkeeping_MD23_plot <- epl_gk %>%
         description = alisson_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "#228B22", color = "#228B22", 
-    label.width = unit(140, 'mm'), label.buffer = unit(5, "mm"),
+    label.width = unit(110, 'mm'), label.buffer = unit(5, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") +
   # Sommer
@@ -348,13 +348,16 @@ epl_goalkeeping_MD23_plot <- epl_gk %>%
   scale_y_continuous(breaks = seq(20, 56, 10),
                      limits = c(18, 56),
                      expand = c(0.01, 0)) +
-  labs(title = "Goalkeeper Performance & Workload: <b style='color: red'>Premier League (2019-2020)</b>",
+  ## #3d195b   #4B0082
+  labs(title = "Goalkeeper Performance & Workload: <b style='color: #3d195b'>Premier League (2019-2020)</b>",
        subtitle = glue::glue("
-                             January 19th, 2020 | MD23 | Minimum 900 Minutes Played
+                             January 19th, 2020 | Matchday 23 | Minimum 900 Minutes Played
                              <p>GSAA %: Whether a GK has saved more/less than the post-shot model expected an average GK to save (Actual Save % - Expected Save %)"),
        x = "Goals Saved Above Average Percentage (GSAA %)", 
        y = "Average Minutes per Save",
-       caption = "Data: FBref | StatsBomb") +
+       caption = glue::glue("
+                            Data: FBref | StatsBomb
+                            Ryo Nakagawara, Twitter: @R_by_Ryo")) +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
         plot.title = element_markdown(size = 20),
@@ -373,23 +376,23 @@ epl_goalkeeping_MD23_plot
 
 ```{r}
 ggsave(plot = epl_goalkeeping_MD23_plot, 
-       here::here("Bundesliga 2019-2020/output/epl_goalkeeping_1920_MD23.png"),
+       here::here("Premier League 2019-2020/output/epl_goalkeeping_1920_MD23.png"),
        height = 10, width = 14)
 ```
 
 ```{r}
 plot_logo <- add_logo(
-  plot_path = here::here("Bundesliga 2019-2020/output/epl_goalkeeping_1920_MD23.png"),
-  logo_path = here::here("../soccer_match_reports/img/Bundesliga_logo_(2017).svg"),
+  plot_path = here::here("Premier League 2019-2020/output/epl_goalkeeping_1920_MD23.png"),
+  logo_path = "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg",
   logo_position = "top right",
-  logo_scale = 18)
+  logo_scale = 9.5)
 
 plot_logo
 ```
 
 ```{r}
 image_write(image = plot_logo, 
-            here::here("Bundesliga 2019-2020/output/epl_goalkeeping_1920_MD23_logo.png"))
+            here::here("Premier League 2019-2020/output/epl_goalkeeping_1920_MD23_logo.png"))
 ```
 
 
