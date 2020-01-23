@@ -399,3 +399,107 @@ image_write(image = plot_logo,
 
 
 
+## all keepers
+
+```{r}
+epl_gk <- epl_player_goalkeeping_MD23_clean %>% 
+  mutate(fillcol = case_when(
+    GSAA_perc < 0 & minPerSave < 30.89 ~ "red",
+    GSAA_perc > 0 & minPerSave < 30.89 ~ "yellow",
+    GSAA_perc < 0 & minPerSave > 30.89 ~ "orange",
+    GSAA_perc > 0 & minPerSave > 30.89 ~ "green",
+    TRUE ~ NA_character_))
+```
+
+
+
+```{r fig.width = 14, fig.height = 10}
+epl_goalkeeping_MD23_plot <- epl_gk %>% 
+  ggplot(aes(x = GSAA_perc, y = minPerSave)) +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 30.89) +
+  ## area fills
+  geom_rect(data = chance_creation_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "orange", alpha = 0.1) +
+  geom_rect(data = bad_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "red", alpha = 0.1) +
+  geom_rect(data = midfield_progress_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "yellow", alpha = 0.2) +
+  geom_rect(data = dual_box,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "green", alpha = 0.1) +
+    ## area labels
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = -0.2, y = 14, 
+           hjust = 0, color = "red", size = 6,
+           label = "Busy & Saving Less Than Average GK") +
+  annotate("text", family = "Roboto Condensed", fontface = "bold",
+           x = -0.2, y = 54, 
+           hjust = 0, color = "orange", size = 6,
+           label = "Not Busy & Saving Less Than Average GK") +
+  annotate( # #7f7f00  #228B22 #CCCC00
+    "text", family = "Roboto Condensed", fontface = "bold",
+    x = 0.02, y = 54, 
+    hjust = 0, color = "#228B22", size = 6,
+    label = "Not Busy & Saving More Than Average GK") +
+  annotate(
+    "text", family = "Roboto Condensed", fontface = "bold",
+    x = 0.02, y = 14, 
+    hjust = 0, color = "#7f7f00", size = 6,
+    label = "Busy & Saving More Than Average GK") +
+  ## player data
+  geom_point(aes(fill = factor(fillcol)), 
+             shape = 21, size = 3) +
+  scale_fill_manual(values = point_cols,
+                    guide = NULL) +
+  geom_text_repel(
+    aes(label = player, family = "Roboto Condensed", 
+        fontface = "bold", 
+        segment.color = factor(fillcol)),
+    min.segment.length = 0.3, seed = 15, size = 5,
+    point.padding = 0.6, color = "grey20") +
+  scale_x_continuous(labels = scales::percent,
+                     breaks = seq(-0.3, 0.35, 0.05),
+                     limits = c(-0.3, 0.35),
+                     expand = c(0.01, 0)) +
+  scale_y_continuous(breaks = seq(20, 56, 10),
+                     limits = c(10, 56),
+                     expand = c(0.01, 0)) +
+  ## #3d195b   #4B0082
+  labs(title = "Goalkeeper Performance & Workload: <b style='color: #3d195b'>Premier League (2019-2020)</b>",
+       subtitle = glue::glue("
+                             January 19th, 2020 | Matchday 23 | ALL KEEPERS VERSION (Many have played less than 5 games...)
+                             <p>GSAA %: Whether a GK has saved more/less than the post-shot model expected an average GK to save (Actual Save % - Expected Save %)"),
+       x = "Goals Saved Above Average Percentage (GSAA %)", 
+       y = "Average Minutes per Save",
+       caption = glue::glue("
+                            Data: FBref | StatsBomb
+                            Ryo Nakagawara, Twitter: @R_by_Ryo")) +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        plot.title = element_markdown(size = 20),
+        plot.subtitle = element_markdown(size = 16),
+        plot.caption = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12))
+
+epl_goalkeeping_MD23_plot
+```
+
+
+```{r}
+ggsave(plot = epl_goalkeeping_MD23_plot, 
+       here::here("Premier League 2019-2020/output/epl_goalkeeping_1920_ALL_KEEPERS.png"),
+       height = 10, width = 14)
+```
