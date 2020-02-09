@@ -232,7 +232,7 @@ serieA_gk <- serieA_player_goalkeeping_MD20_clean %>%
     player = as.character(player)) %>% 
   mutate(player = case_when(
     GSAA == 6.0 ~ "W. Szczesny",
-    GSAA == -7.3 ~ "L. Skorupski",
+    GA90 == 1.60 ~ "L. Skorupski",
     GSAA == -5.9 ~ "I. Radu",
     TRUE ~ player))
 ```
@@ -244,11 +244,11 @@ point_cols <- c("yellow" = "yellow", "red" = "red",
 
 
 ```{r}
-wojciech_desc <- "as Juventus aim for a 9th consecutive Scudetto. 80% Save % the highest in the league   0.92 Goals Against per 90 (2nd in Serie A)"
+wojciech_desc <- "As Juventus aim for a 9th consecutive Scudetto their Polish shot-stopper Wojciech Szczęsny has a 80% Save %, +6 GSAA, & +10 GSAA % (all the highest in the league). With a 0.92 Goals Against per 90 (2nd in Serie A) the entire defense's efforts allow Juventus to get results even when their attack is not doing well."
 
 gollini_desc <- "Atalanta have been lauded for their ability to dominate games, indeed, they have conceded the least amount of shots on target. However, with a 56.1 Save % (worst in the league), Pierluigi Gollini is doing extremely poorly whenever troubled. The Italian has the 5th worst GSAA having conceded 4.1 goals from shots that the average goalkeeper would have expected to have saved."
 
-gabriel_desc <- "Gabriel is the busiest keeper in Serie A being forced to make a league high 91 saves (A save every 19.9 minutes).    4.24 GSAA % is the 3rd best in the league proving his worth by keeping an otherwise woeful Lecce team just above the relegation spots."
+gabriel_desc <- "Gabriel is the busiest keeper in Serie A being forced to make a league high 91 saves (A save every 19.9 minutes). With a +4.24 GSAA % (3rd best in the league) the Brazilian is proving his worth by keeping an otherwise woeful Lecce team just above the relegation spots."
 
 radu_desc <- "Genoa are rooted to the bottom of the table & their Romanian shot-stopper has not helped in the slightest. With a 60.7 Save % (3rd worst in the league) Ionut Radu has been leaking goals at a rate of 2.06 per 90 (league worst). His post-shot model stats, -5.9 GSAA (2nd worst) & -6.6 GSAA %, suggest that he is doing much worse than the average goalkeeper."
 ```
@@ -304,7 +304,7 @@ serieA_goalkeeping_MD20_plot <- serieA_gk %>%
   ## avg minutes per save
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = -0.115, y = 28.75, 
+    x = -0.115, y = 28.6, 
     hjust = 0, color = "grey20", size = 4,
     label = "Average: 29.03 Minutes per Save") +
   ## player data
@@ -324,7 +324,7 @@ serieA_goalkeeping_MD20_plot <- serieA_gk %>%
   # Gabriel
   geom_mark_hull(
     aes(filter = player == "Gabriel",
-        label = "Gabriel (Lecce)",
+        label = "Gabriel (U.S. Lecce)",
         description = gabriel_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "grey20", color = "grey20",
@@ -344,7 +344,7 @@ serieA_goalkeeping_MD20_plot <- serieA_gk %>%
   # Radu
   geom_mark_hull(
     aes(filter = player == "I. Radu",
-        label = "Ionut Radu (Genoa)",
+        label = "Ionut Radu (Genoa C.F.C.)",
         description = radu_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "red", color = "red", 
@@ -354,7 +354,7 @@ serieA_goalkeeping_MD20_plot <- serieA_gk %>%
   # wojciech
   geom_mark_hull(
     aes(filter = player == "W. Szczesny",
-        label = "Wojciech Szczęsny (Juventus)",
+        label = "Wojciech Szczęsny (Juventus F.C.)",
         description = wojciech_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "grey20", color = "grey20",
@@ -370,7 +370,7 @@ serieA_goalkeeping_MD20_plot <- serieA_gk %>%
                      expand = c(0.01, 0)) +
   labs(title = "Goalkeeper Shot-Stopping & Workload: <b style='color: red'>Serie A (2019-2020)</b>",
        subtitle = glue::glue("
-                             January 24th, 2020 | MD20 | Minimum 1080 Minutes Played
+                             January 24th, 2020 | Matchday 20 | Minimum 1080 Minutes Played
                              <p>GSAA %: Whether a GK has saved more/less than the post-shot model expected an average GK to save (Actual Save % - Expected Save %)"),
        x = "Goals Saved Above Average Percentage (GSAA %)", 
        y = "Average Minutes per Save",
@@ -395,23 +395,23 @@ serieA_goalkeeping_MD20_plot
 
 ```{r}
 ggsave(plot = serieA_goalkeeping_MD20_plot, 
-       here::here("Bundesliga 2019-2020/output/serieA_goalkeeping_1920_MD20.png"),
+       here::here("Serie A 2019-2020/output/serieA_goalkeeping_1920_MD20.png"),
        height = 10, width = 14)
 ```
 
 ```{r}
 plot_logo <- add_logo(
-  plot_path = here::here("Bundesliga 2019-2020/output/serieA_goalkeeping_1920_MD20.png"),
-  logo_path = here::here("../soccer_match_reports/img/Bundesliga_logo_(2017).svg"),
+  plot_path = here::here("Serie A 2019-2020/output/serieA_goalkeeping_1920_MD20.png"),
+  logo_path = "https://upload.wikimedia.org/wikipedia/en/e/e1/Serie_A_logo_%282019%29.svg",
   logo_position = "top right",
-  logo_scale = 18)
+  logo_scale = 32)
 
 plot_logo
 ```
 
 ```{r}
 image_write(image = plot_logo, 
-            here::here("Bundesliga 2019-2020/output/serieA_goalkeeping_1920_MD20_logo.png"))
+            here::here("Serie A 2019-2020/output/serieA_goalkeeping_1920_MD20_logo.png"))
 ```
 
 
