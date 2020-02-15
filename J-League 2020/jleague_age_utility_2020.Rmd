@@ -9,7 +9,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # Packages
 ```{r, message=FALSE, warning=FALSE}
 pacman::p_load(tidyverse, polite, scales, ggimage, rvest, 
-               glue, extrafont, ggrepel, magick, ggforce)
+               glue, extrafont, showtext, ggrepel, magick, 
+               ggforce, lubridate, cowplot, patchwork)
 loadfonts()
 ```
 
@@ -198,7 +199,7 @@ tokyo_minutes <- results_comb %>%
 # rectanglular highlight for players in their prime:
 rect_df <- data.frame(
   xmin = 26, xmax = 30,
-  ymin = -Inf, ymax = Inf
+  ymin = 0, ymax = 1
 )
 
 glimpse(tokyo_minutes)
@@ -209,6 +210,9 @@ glimpse(tokyo_minutes)
 "ピーク年齢"
 
 ```{r fig.height=8, fig.width=12}
+# font_add_google("Noto Sans", "Noto Sans")
+# showtext_auto()
+
 fctokyo_plot <- tokyo_minutes %>% 
   ggplot(aes(x = age_now, y = min_perc)) +
   geom_vline(xintercept = 25, alpha = 0.4, color = "grey20") +
@@ -224,34 +228,38 @@ fctokyo_plot <- tokyo_minutes %>%
             color = "#DD2220", size = 1.75) + 
   geom_point(aes(x = age_now), color = "#DD2220", size = 3.5) +
   geom_text_repel(
-    aes(label = player, family = "Roboto Condensed"),
+    aes(label = player),
     nudge_y = 0.01, 
     seed = 6) + 
+  annotate("text", x = 28, y = 1.055,
+           size = 5.5, fontface = "bold",
+           family = "Yu Mincho Demibold",
+           label = "ピーク年齢", color = "grey20") +
   scale_y_continuous(
     expand = c(0.01, 0),
-    limits = c(0, 1), 
+    limits = c(0, 1.08), 
+    breaks = seq(0, 1, by = 0.2), 
     labels = percent_format()) +
   scale_x_continuous(
     limits = c(16, 33),
     breaks = seq(18, 34, by = 2)) +
-  #scale_color_gradient() +
   labs(
     x = "年齢", 
     y = tategaki_alt("出場時間 (%)"),  
-    title = "FC東京: 年齢-出場時間プロット",
-    subtitle = "J-League 2018 Season (100% = 3060分)",
-    caption = glue("
-                   データ: transfermarkt.com
-                   作: @R_by_Ryo")) +
+    title = "FC東京: 年齢-出場時間",
+    subtitle = "J-League 2019 Season (100% = 3060分)") +
   theme_bw() +
   theme(
-    text = element_text(family = "Roboto Condensed"),
-    panel.border = element_rect(color = "#271672", size = 1.25),
-    plot.title = element_text(color = "#271672", size = 16, face = "bold"),
-    plot.subtitle = element_text(color = "#DD2220", size = 14),
+    text = element_text(family = "Yu Mincho Demibold"),
+    panel.border = element_blank(),
+    plot.title = element_text(color = "#271672", size = 20, face = "bold"),
+    plot.subtitle = element_text(color = "#DD2220", size = 18),
+    plot.caption = element_text(size = 14),
+    panel.grid.minor = element_blank(),
     axis.title.y = element_text(angle = 0, vjust= 0.5),
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.ticks = element_blank(),
     legend.position = "none")
 
 fctokyo_plot
@@ -268,12 +276,139 @@ ggsave(plot = fctokyo_plot, "../J-League 2020/output/fctokyo_plot.png",
 plot_logo <- add_logo(plot_path = "../J-League 2020/output/fctokyo_plot.png",
                       logo_path = "https://upload.wikimedia.org/wikipedia/en/4/45/FCTokyo.png",
                       logo_position = "top right",
-                      logo_scale = 27)
+                      logo_scale = 23)
 
 plot_logo
 ```
 
 ```{r}
 image_write(image = plot_logo, "../J-League 2020/output/fctokyo_logo_plot.png")
+```
+
+
+## legend plot
+
+```{r fig.width=3, fig.height=5}
+leg_df <- tibble(x = 23, xend = 28,
+                 y = 0.65, yend = 0.65)
+
+
+legend_plot <- tokyo_minutes %>% 
+  ggplot(aes(x = age_now, y = min_perc)) +
+  geom_rect(data = rect_df,
+            aes(x = NULL, y = NULL,
+                xmin = xmin, xmax = xmax,
+                ymin = ymin, ymax = ymax),
+            fill = "#271672", alpha = 0.4) +
+  geom_link(data = leg_df,
+            aes(x = x, xend = xend,
+                y = y, yend = yend,
+                alpha = stat(index)), 
+            color = "#DD2220", size = 1.75) + 
+  geom_point(x = 28, y = 0.65, color = "#DD2220", size = 3.5) +
+  ## top arrow
+  geom_curve(x = 30, xend = 28.4,
+             y = 0.77, yend = 0.65,
+             curvature = -0.5, size = 1.2,
+             arrow = arrow(length = unit(0.1, "inches")),
+             lineend = "round") +
+  ## bottom arrow
+  geom_segment(x = 23, xend = 23,
+               y = 0.48, yend = 0.63,
+               size = 1.2,
+               arrow = arrow(length = unit(0.1, "inches")),
+               lineend = "round") +
+  annotate("text", x = 30, y = 0.83, family = "Yu Mincho Demibold",
+           label = "年齢", size = 4.5) +
+  annotate("text", x = 23, y = 0.4, family = "Yu Mincho Demibold",
+           label = "年齢 （入団時）", size = 4.5) +
+  scale_y_continuous(
+    limits = c(0, 1.05), 
+    breaks = seq(0, 1, by = 0.2),
+    labels = percent_format()) +
+  scale_x_continuous(
+    limits = c(18, 33),
+    breaks = seq(18, 34, by = 2)) +
+  labs(caption = glue("
+                   データ: transfermarkt.com
+                   作: @R_by_Ryo")) +
+  theme_bw() +
+  theme(
+    text = element_text(family = "Yu Mincho Demibold"),
+    panel.border = element_blank(),
+    plot.caption = element_text(size = 14),
+    axis.ticks = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_text(size = 10),
+    legend.position = "none")
+
+legend_plot
+```
+
+
+## combine
+
+
+```{r fig.height=8, fig.width=12}
+fctokyo_plot +
+  theme(plot.margin = unit(c(1, 10, 1, 1), "cm"))
+
+legend_plot
+```
+
+
+
+
+```{r fig.width=15, fig.height=8}
+ggdraw(plot_grid(fctokyo_plot, legend_plot, 
+                 rel_heights = c(2, 1)))
+
+
+ggdraw() +
+  draw_plot(fctokyo_plot) +
+  draw_plot(legend_plot, hjust = 10, 
+            width = 0.13, height = 0.2)
+
+
+ggdraw(fctokyo_plot +
+  theme(plot.margin = unit(c(1, 10, 1, 1), "cm"))) +
+  draw_plot(legend_plot, 1, 0,
+            width = 0.13, height = 0.2)
+```
+
+
+
+```{r fig.width=15, fig.height=8}
+layout <- "
+AAAA##
+AAAA##
+AAAAB#
+"
+
+combined_plot <- fctokyo_plot + legend_plot + plot_layout(design = layout)
+
+combined_plot
+```
+
+
+
+```{r}
+ggsave(plot = combined_plot, "../J-League 2020/output/fctokyo_combplot.png",
+       height = 8, width = 15)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2020/output/fctokyo_combplot.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/4/45/FCTokyo.png",
+                      logo_position = "top right",
+                      logo_scale = 23)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2020/output/fctokyo_logo_combplot.png")
 ```
 
