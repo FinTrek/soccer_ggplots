@@ -198,7 +198,7 @@ tokyo_minutes <- results_comb %>%
 
 # rectanglular highlight for players in their prime:
 rect_df <- data.frame(
-  xmin = 26, xmax = 30,
+  xmin = 25, xmax = 29,
   ymin = 0, ymax = 1
 )
 
@@ -343,6 +343,84 @@ legend_plot <- tokyo_minutes %>%
     legend.position = "none")
 
 legend_plot
+```
+
+
+
+## age histogram
+
+
+```{r fig.width=3, fig.height=5}
+tokyo_minutes %>% 
+  mutate(team = "FC Tokyo") %>% 
+  select(team, age) %>% 
+  #spread("team", "age") %>% 
+  ggplot(aes(x = age, y = team), groupOnX = TRUE) +
+  ggbeeswarm::geom_beeswarm()
+
+
+tokyo_minutes %>% 
+  ggplot(aes(age)) +
+  geom_freqpoly(binwidth = 1.5)
+
+
+tokyo_minutes %>% 
+  mutate(team = "FC Tokyo") %>% 
+  ggplot(aes(age, team)) +
+  ggridges::geom_density_ridges(scale = 4) +
+  scale_y_discrete(expand = c(0.05, 0))
+
+
+tokyo_minutes %>% 
+  add_count(age) %>% 
+  ggplot(aes(as.factor(age), n)) +
+  ggridges::geom_density_ridges()
+  mutate(team = "FC Tokyo") %>% 
+  group_by(age) %>% 
+  summarize(tot = n()) %>% 
+  ungroup() %>% 
+  ggplot(aes(age, tot, height = tot)) +
+  ggridges::geom_ridgeline()
+  
+  
+tokyo_minutes %>% 
+  add_count(age) %>% 
+  ggplot(aes(as.factor(age), n)) +
+  geom_col()
+
+tokyo_minutes %>% 
+  ggplot(aes(age)) +
+  geom_density(#aes(y = ..count..), 
+               fill = "grey20") +
+  geom_vline(aes(xintercept = median(age)), color = "red") +
+  scale_x_continuous(limits = c(8, 40)) +
+  scale_y_continuous(limits = c(0, 0.1))
+```
+
+
+## summary stats
+
+```{r fig.width=3, fig.height=5}
+tokyo_minutes %>% 
+  mutate(duration = age_now - join_age) %>% 
+  summarize(median_age = median(age),
+            median_duration = median(duration),
+            sum_players = n())
+```
+
+```{r fig.width=3, fig.height=5}
+tokyo_minutes %>% 
+  ggplot(aes(x = age_now, y = min_perc)) +
+  annotate("text", x = 25, y = 0.75, 
+           label = "Number of Players: 25",
+           family = "Yu Mincho Demibold") +
+  annotate("text", x = 25, y = 0.5, 
+           label = "Median Age: 24",
+           family = "Yu Mincho Demibold") +
+  annotate("text", x = 25, y = 0.25, 
+           label = "Median Length of Stay: 2.59 Years",
+           family = "Yu Mincho Demibold") +
+  theme_void()
 ```
 
 
