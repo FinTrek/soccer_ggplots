@@ -196,12 +196,6 @@ tokyo_minutes <- results_comb %>%
     TRUE ~ last_name)) %>% 
   arrange(desc(min_perc))
 
-# rectanglular highlight for players in their prime:
-rect_df <- data.frame(
-  xmin = 25, xmax = 29,
-  ymin = 0, ymax = 1
-)
-
 glimpse(tokyo_minutes)
 ```
 
@@ -212,6 +206,12 @@ glimpse(tokyo_minutes)
 ```{r fig.height=8, fig.width=12}
 # font_add_google("Noto Sans", "Noto Sans")
 # showtext_auto()
+
+# rectanglular highlight for players in their prime:
+rect_df <- data.frame(
+  xmin = 25, xmax = 29,
+  ymin = 0, ymax = 1
+)
 
 fctokyo_plot <- tokyo_minutes %>% 
   ggplot(aes(x = age_now, y = min_perc)) +
@@ -231,7 +231,7 @@ fctokyo_plot <- tokyo_minutes %>%
     aes(label = player),
     nudge_y = 0.01, 
     seed = 6) + 
-  annotate("text", x = 28, y = 1.055,
+  annotate("text", x = 27, y = 1.055,
            size = 5.5, fontface = "bold",
            family = "Yu Mincho Demibold",
            label = "ピーク年齢", color = "grey20") +
@@ -409,18 +409,23 @@ tokyo_minutes %>%
 ```
 
 ```{r fig.width=3, fig.height=5}
-tokyo_minutes %>% 
+summary_stats <- tokyo_minutes %>%
   ggplot(aes(x = age_now, y = min_perc)) +
   annotate("text", x = 25, y = 0.75, 
+           size = 4,
            label = "Number of Players: 25",
            family = "Yu Mincho Demibold") +
-  annotate("text", x = 25, y = 0.5, 
+  annotate("text", x = 25, y = 0.65, 
+           size = 4,
            label = "Median Age: 24",
            family = "Yu Mincho Demibold") +
-  annotate("text", x = 25, y = 0.25, 
+  annotate("text", x = 25, y = 0.55, 
+           size = 4,
            label = "Median Length of Stay: 2.59 Years",
            family = "Yu Mincho Demibold") +
   theme_void()
+
+summary_stats
 ```
 
 
@@ -459,11 +464,13 @@ ggdraw(fctokyo_plot +
 ```{r fig.width=15, fig.height=8}
 layout <- "
 AAAA##
+AAAAC#
 AAAA##
 AAAAB#
 "
 
-combined_plot <- fctokyo_plot + legend_plot + plot_layout(design = layout)
+combined_plot <- fctokyo_plot + legend_plot + summary_stats + 
+  plot_layout(design = layout)
 
 combined_plot
 ```
@@ -489,4 +496,154 @@ plot_logo
 ```{r}
 image_write(image = plot_logo, "../J-League 2020/output/fctokyo_logo_combplot.png")
 ```
+
+
+
+
+
+
+# all teams
+
+
+
+```{r}
+get_team_links <- function(season) {
+  
+  url <- "https://www.transfermarkt.com/j1-league/startseite/wettbewerb/JAP1/plus/?saison_id={season}"
+  
+  session <- bow(url)
+  
+  team_links <- scrape(session) %>% 
+    html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a") %>% 
+    html_attr("href")
+  
+ # season <- enquo(season)
+  
+  team_links_df <- team_links %>% 
+    enframe(name = NULL) %>% 
+    separate(value, c(NA, "team_name", NA, NA, "team_num", NA, NA), sep = "/") %>% 
+    mutate(link = glue("https://www.transfermarkt.com/{team_name}/leistungsdaten/verein/{team_num}/reldata/JAP1%26{season}/plus/1"),
+           season = season)
+}
+```
+
+```{r}
+team_links_df <- get_team_links(season = 2018)
+
+glimpse(team_links_df)
+```
+
+
+```{r}
+jleague_age_utility_info <- function(team_name, team_num, season) {
+  ## get age + minutes played
+  session <- bow(glue::glue("https://www.transfermarkt.com/{team_name}/leistungsdaten/verein/{team_num}/plus/0?reldata=JAP1%26{season}"))
+  
+  # grab name from photo element instead
+  result_name <- scrape(session) %>% 
+    html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+    html_attr("title") 
+  
+  # grab age
+  result_age <- scrape(session) %>% 
+    html_nodes(".posrela+ .zentriert") %>% 
+    html_text()
+  
+  # grab minutes played in league
+  result_mins <- scrape(session) %>% 
+    html_nodes("td.rechts") %>% 
+    html_text()
+  
+  ## get length
+  session <- bow(glue::glue("https://www.transfermarkt.com/{team_name}/kader/verein/{team_num}/plus/1/galerie/0?saison_id={season}"))
+  
+  result_name2 <- scrape(session) %>% 
+    html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+    html_attr("title") 
+  
+  result_bday <- scrape(session) %>% 
+    html_nodes(".posrela+ .zentriert") %>% 
+    html_text()
+  
+  result_joinedteam <- scrape(session) %>% 
+    html_nodes("td:nth-child(8)") %>% 
+    html_text()
+  
+  result_leaveteam <- scrape(session) %>% 
+    html_nodes("td:nth-child(10)") %>% 
+    html_text()
+  
+  # place each vector into list
+  resultados <- list(result_name, result_age, result_mins)
+  
+  col_name <- c("name", "age", "minutes")
+  
+  results_comb <- resultados %>% 
+    reduce(cbind) %>% 
+    as_tibble() %>% 
+    set_names(col_name)
+  
+  ## join + bday
+  resultados2 <- list(result_name2, result_bday, 
+                      result_joinedteam, result_leaveteam)
+  
+  col_name2 <- c("name", "bday", "join", "leave")
+  
+  results_comb2 <- resultados2 %>% 
+    reduce(cbind) %>% 
+    as_tibble() %>% 
+    set_names(col_name2)
+  
+  ## combine BOTH
+  results_comb <- results_comb %>% 
+    left_join(results_comb2) 
+  
+  # fix "strings" into proper formats, calculate % of minutes appeared
+  all_team_minutes <- results_comb %>% 
+    mutate(age = as.numeric(age),
+           minutes = minutes %>% 
+             str_replace("\\.", "") %>% 
+             str_replace("'", "") %>% 
+             as.numeric(),
+           min_perc = (minutes / 3060) %>% round(digits = 3),
+           bday = str_replace_all(bday, "\\(.*\\)", "") %>% mdy(),
+           join = join %>% mdy(),
+           join_age = interval(bday, Sys.Date()) / years(1)) %>% 
+    filter(!is.na(minutes)) %>% 
+    separate(name, into = c("first_name", "last_name"), 
+             sep = " ", fill = "left") %>%
+    mutate(
+      fname = if_else(!is.na(first_name), 
+                      str_extract(first_name, "[A-Z]{1}"),
+                      ""),
+      player = case_when(
+        !is.na(first_name) ~ glue("{fname}. {last_name}"),
+        TRUE ~ last_name),
+      team_name = team_name,
+      season = season) %>% 
+    arrange(desc(min_perc))
+  
+  return(all_team_minutes)
+}
+```
+
+```{r}
+# ALL 18 TEAMS AT ONCE, WILL TAKE A WHILE:
+age_utility_df_ALL <- pmap(list(team_links_df$team_name, 
+                                team_links_df$team_num,
+                                team_links_df$season),
+                             .f = jleague_age_utility_info)
+
+jleague_age_utility_df <- age_utility_df_ALL %>% 
+  reduce(rbind)
+
+## save
+saveRDS(jleague_age_utility_df, file = glue("{here::here()}/data/jleague_age_utility_df_2019.RDS"))
+```
+
+
+
+
+
+
 
