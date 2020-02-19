@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, message=FALSE, warning=FALSE}
 pacman::p_load(tidyverse, polite, scales, ggimage, rvest, 
                glue, extrafont, showtext, ggrepel, magick, 
-               ggforce, lubridate, cowplot, patchwork)
+               ggforce, lubridate, cowplot, patchwork, rlang)
 loadfonts()
 ```
 
@@ -650,6 +650,8 @@ jleague_age_utility_df <- age_utility_df_ALL %>%
 saveRDS(jleague_age_utility_df, file = glue("{here::here()}/data/jleague_age_utility_df_2019.RDS"))
 ```
 
+# all team data
+
 ```{r}
 jleague_age_utility_df <- readRDS(file = here::here("data/jleague_age_utility_df_2019.RDS"))
 ```
@@ -670,6 +672,9 @@ create_age_utility_plot <- function(df, color_1, color_2) {
     xmin = 25, xmax = 29,
     ymin = 0, ymax = 1
   )
+  max <- max(df$age, na.rm = TRUE)
+  lims <- c(16, (max(df$age, na.rm = TRUE) + 2))
+  breaks <- seq(from = 18, to = max, by = 2)
   
   plot <- df %>% 
     ggplot(aes(x = age_now, y = min_perc)) +
@@ -699,8 +704,8 @@ create_age_utility_plot <- function(df, color_1, color_2) {
       breaks = seq(0, 1, by = 0.2), 
       labels = percent_format()) +
     scale_x_continuous(
-      limits = c(16, max(df$age) + 2),
-      breaks = seq(18, max(df$age), by = 2)) +
+      limits = lims,
+      breaks = breaks) +
     labs(
       x = "年齢", 
       y = tategaki_alt("出場時間 (%)"),  
@@ -1043,6 +1048,154 @@ plot_logo
 ```{r}
 image_write(image = plot_logo, "../J-League 2020/output/shonanbellmare_logo_combplot.png")
 ```
+
+
+# Yokohama F. Marinos
+
+
+## plot
+
+```{r fig.height=8, fig.width=12}
+yfm_plot <- jleague_age_utility_df %>% 
+  filter(team_name == "Yokohama F. Marinos") %>% 
+  create_age_utility_plot(color_1 = "#003f99", color_2 = "#F40041")
+
+yfm_plot
+```
+
+## legend plot
+
+```{r fig.width=3, fig.height=5}
+yfm_leg <- jleague_age_utility_df %>% 
+  filter(team_name == "Yokohama F. Marinos") %>% 
+  create_age_utility_legend(color_1 = "#003f99", color_2 = "#F40041")
+
+yfm_leg
+```
+
+## summary_plot
+
+```{r fig.width=3, fig.height=5}
+yfm_sum <- jleague_age_utility_df %>% 
+  filter(team_name == "Yokohama F. Marinos") %>% 
+  create_summary_stats_plot()
+
+yfm_sum
+```
+
+## combine
+
+```{r fig.width=15, fig.height=8}
+layout <- "
+AAAA##
+AAAAC#
+AAAA##
+AAAAB#
+"
+
+combined_plot <- yfm_plot + yfm_leg + yfm_sum + 
+  plot_layout(design = layout)
+
+combined_plot
+```
+
+## save
+
+
+```{r}
+ggsave(plot = combined_plot, "../J-League 2020/output/yokohamamarinos_combplot.png",
+       height = 8, width = 15)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2020/output/yokohamamarinos_combplot.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/6/65/Yokohama_F_Marinos_logo.svg",
+                      logo_position = "top right",
+                      logo_scale = 15)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2020/output/yokohamamarinos_logo_combplot.png")
+```
+
+
+# function
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter <- function(df, team_name, color_1, color_2) {
+  
+  team_name <- enquo(team_name)
+
+  df <- df %>% 
+  filter(team_name == !!team_name)
+  
+  age_utility_plot <- df %>% 
+    create_age_utility_plot(color_1 = color_1, color_2 = color_2)
+  
+  plot_leg <- df %>% 
+    create_age_utility_legend(color_1 = color_1, color_2 = color_2)
+  
+  plot_sum <- df %>% 
+  create_summary_stats_plot()
+  
+  layout <- "
+AAAA##
+AAAAC#
+AAAA##
+AAAAB#
+"
+  
+  combined_plot <- age_utility_plot + plot_leg + plot_sum + 
+    plot_layout(design = layout)
+  
+  return(combined_plot)
+}
+```
+
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Urawa Red Diamonds",
+                    color_1 = "black", color_2 = "red")
+```
+
+
+
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Sagan Tosu",
+                    color_1 = "pink", color_2 = "lightblue")
+```
+
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Oita Trinita",
+                    color_1 = "blue", color_2 = "yellow")
+```
+
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Gamba Osaka",
+                    color_1 = "blue", color_2 = "black")
+```
+
+
+
+
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Cerezo Osaka",
+                    color_1 = "violet", color_2 = "black")
+```
+
 
 
 
