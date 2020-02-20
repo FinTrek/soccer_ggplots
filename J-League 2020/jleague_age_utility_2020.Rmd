@@ -837,21 +837,26 @@ create_summary_stats_plot <- function(df) {
     ggplot(aes(x = age_now, y = min_perc)) +
     annotate("text", x = 25, y = 0.75, 
              size = 4,
-             label = glue::glue("Number of Players: {summary_df$sum_players}"),
+             label = glue::glue("選手: {summary_df$sum_players}人"),
              family = "Yu Mincho Demibold") +
     annotate("text", x = 25, y = 0.65, 
              size = 4,
-             label = glue::glue("Median Age: {summary_df$median_age}"),
+             label = glue::glue("平均年齢: {summary_df$median_age}歳"),
              family = "Yu Mincho Demibold") +
     annotate("text", x = 25, y = 0.55, 
              size = 4,
-             label = glue::glue("Median Length of Stay: {summary_df$median_duration} Years"),
+             label = glue::glue("平均滞在期間: {summary_df$median_duration}年"),
              family = "Yu Mincho Demibold") +
+    scale_y_continuous(limits = c(0.3, 0.9)) +
     theme_void()
   
   return(summary_stats)
 }
 ```
+
+選手：２５人
+平均年齢
+平均滞在期間/日数
 
 ```{r fig.width=3, fig.height=5}
 vk_sum <- jleague_age_utility_df %>% 
@@ -1197,6 +1202,53 @@ age_utility_plotter(df = jleague_age_utility_df,
 ```
 
 
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Nagoya Grampus",
+                    color_1 = "red", color_2 = "orange")
+```
+
+```{r fig.width=15, fig.height=8}
+combined_plot <- age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Kawasaki Frontale",
+                    color_1 = "black", color_2 = "#1EB8FF")
+
+combined_plot
+```
+
+Last season most of #Frontale's minutes were taken up by an aging core + rotating parts by a large # of players in their "peak" ages (a lot to cover for RB). In the offseason they've bought players like Issaka & Kamiya to provide more youthful backup. #川崎フロンターレ #JLeague
+
+Nabbing Yamane will also help with solving the uncertainty around RB last season. While the likes to Mitoma, Hatate, & Miyadai will hope to gain some minutes to cover for the veteran Damiao & Kobayashi.
+
+
+```{r}
+ggsave(plot = combined_plot, "../J-League 2020/output/kawasakifrontale_combplot.png",
+       height = 8, width = 15)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2020/output/kawasakifrontale_combplot.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/7/74/KawasakiFrontale.png",
+                      logo_position = "top right",
+                      logo_scale = 23)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2020/output/kawasakifrontale_logo_combplot.png")
+```
+
+
+
+
+```{r fig.width=15, fig.height=8}
+age_utility_plotter(df = jleague_age_utility_df, 
+                    team_name = "Kashima Antlers",
+                    color_1 = "darkred", color_2 = "black")
+```
 
 
 
