@@ -622,6 +622,244 @@ glimpse(reysol_minutes)
 
 
 
+
+# Jubilo Iwata
+
+## scrape jubilo
+
+```{r}
+session <- bow("https://www.transfermarkt.com/jubilo-iwata/leistungsdaten/verein/937/plus/1?reldata=JAP1%262018")
+
+print(session)
+
+# grab name from photo element instead
+result_name <- scrape(session) %>% 
+  html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+  html_attr("title") 
+
+# grab age
+result_age <- scrape(session) %>% 
+  html_nodes(".posrela+ .zentriert") %>% 
+  html_text()
+
+# grab minutes played in league
+result_mins <- scrape(session) %>% 
+  html_nodes("td.rechts") %>% 
+  html_text()
+```
+
+
+## scrape length
+
+```{r}
+session <- bow("https://www.transfermarkt.com/jubilo-iwata/kader/verein/937/saison_id/2018/plus/1")
+
+result_name2 <- scrape(session) %>% 
+  html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+  html_attr("title") 
+
+result_bday <- scrape(session) %>% 
+  html_nodes(".posrela+ .zentriert") %>% 
+  html_text()
+
+result_joinedteam <- scrape(session) %>% 
+  html_nodes("td:nth-child(8)") %>% 
+  html_text()
+
+result_leaveteam <- scrape(session) %>% 
+  html_nodes("td:nth-child(10)") %>% 
+  html_text()
+```
+
+## clean jubilo
+
+```{r}
+# place each vector into list
+resultados <- list(result_name, result_age, result_mins)
+
+col_name <- c("name", "age", "minutes")
+
+results_comb <- resultados %>% 
+  reduce(cbind) %>% 
+  as_tibble() %>% 
+  set_names(col_name)
+
+## join + bday
+resultados2 <- list(result_name2, result_bday, 
+                    result_joinedteam, result_leaveteam)
+
+col_name2 <- c("name", "bday", "join", "leave")
+
+results_comb2 <- resultados2 %>% 
+  reduce(cbind) %>% 
+  as_tibble() %>% 
+  set_names(col_name2)
+
+## combine BOTH
+results_comb <- results_comb %>% 
+  left_join(results_comb2) 
+
+# fix "strings" into proper formats, calculate % of minutes appeared
+jubilo_minutes <- results_comb %>% 
+  mutate(age = as.numeric(age),
+         minutes = minutes %>% 
+           str_replace("\\.", "") %>% 
+           str_replace("'", "") %>% 
+           as.numeric(),
+         min_perc = (minutes / 3060) %>% round(digits = 3),
+         bday = str_replace_all(bday, "\\(.*\\)", "") %>% mdy(),
+         join = join %>% mdy(),
+         join_age = case_when(
+           name == "Hirotaka Mita" ~ 29,
+           TRUE ~ interval(bday, join) / years(1)),
+         age_now = case_when(
+           name == "Takefusa Kubo" ~ 17,
+           TRUE ~ interval(bday, Sys.Date()) / years(1))) %>% 
+  filter(!is.na(minutes)) %>% 
+  separate(name, into = c("first_name", "last_name"), 
+           sep = " ", fill = "left") %>%
+  mutate(join_age = case_when(
+           last_name == "Oh" ~ 29,
+           TRUE ~ join_age),
+         fname = if_else(!is.na(first_name), 
+                         str_extract(first_name, "[A-Z]{1}"),
+                         ""),
+         player = case_when(
+    !is.na(first_name) ~ glue("{fname}. {last_name}"),
+    TRUE ~ last_name),
+    team_name = "Jubilo Iwata") %>% 
+  arrange(desc(min_perc))
+
+glimpse(jubilo_minutes)
+```
+
+
+
+
+# Matsumoto Yamagaa
+
+## scrape yamaga
+
+```{r}
+session <- bow("https://www.transfermarkt.com/matsumoto-yamaga/leistungsdaten/verein/25765/plus/1?reldata=JAP1%262018")
+
+print(session)
+
+# grab name from photo element instead
+result_name <- scrape(session) %>% 
+  html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+  html_attr("title") 
+
+# grab age
+result_age <- scrape(session) %>% 
+  html_nodes(".posrela+ .zentriert") %>% 
+  html_text()
+
+# grab minutes played in league
+result_mins <- scrape(session) %>% 
+  html_nodes("td.rechts") %>% 
+  html_text()
+```
+
+
+## scrape length
+
+```{r}
+session <- bow("https://www.transfermarkt.com/matsumoto-yamaga/kader/verein/25765/saison_id/2018/plus/1")
+
+result_name2 <- scrape(session) %>% 
+  html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+  html_attr("title") 
+
+result_bday <- scrape(session) %>% 
+  html_nodes(".posrela+ .zentriert") %>% 
+  html_text()
+
+result_joinedteam <- scrape(session) %>% 
+  html_nodes("td:nth-child(8)") %>% 
+  html_text()
+
+result_leaveteam <- scrape(session) %>% 
+  html_nodes("td:nth-child(10)") %>% 
+  html_text()
+```
+
+## clean yamaga
+
+```{r}
+# place each vector into list
+resultados <- list(result_name, result_age, result_mins)
+
+col_name <- c("name", "age", "minutes")
+
+results_comb <- resultados %>% 
+  reduce(cbind) %>% 
+  as_tibble() %>% 
+  set_names(col_name)
+
+## join + bday
+resultados2 <- list(result_name2, result_bday, 
+                    result_joinedteam, result_leaveteam)
+
+col_name2 <- c("name", "bday", "join", "leave")
+
+results_comb2 <- resultados2 %>% 
+  reduce(cbind) %>% 
+  as_tibble() %>% 
+  set_names(col_name2)
+
+## combine BOTH
+results_comb <- results_comb %>% 
+  left_join(results_comb2) 
+
+# fix "strings" into proper formats, calculate % of minutes appeared
+yamaga_minutes <- results_comb %>% 
+  mutate(age = as.numeric(age),
+         minutes = minutes %>% 
+           str_replace("\\.", "") %>% 
+           str_replace("'", "") %>% 
+           as.numeric(),
+         min_perc = (minutes / 3060) %>% round(digits = 3),
+         bday = str_replace_all(bday, "\\(.*\\)", "") %>% mdy(),
+         join = join %>% mdy(),
+         join_age = case_when(
+           name == "Hirotaka Mita" ~ 29,
+           TRUE ~ interval(bday, join) / years(1)),
+         age_now = case_when(
+           name == "Takefusa Kubo" ~ 17,
+           TRUE ~ interval(bday, Sys.Date()) / years(1))) %>% 
+  filter(!is.na(minutes)) %>% 
+  separate(name, into = c("first_name", "last_name"), 
+           sep = " ", fill = "left") %>%
+  mutate(join_age = case_when(
+           last_name == "Oh" ~ 29,
+           TRUE ~ join_age),
+         fname = if_else(!is.na(first_name), 
+                         str_extract(first_name, "[A-Z]{1}"),
+                         ""),
+         player = case_when(
+    !is.na(first_name) ~ glue("{fname}. {last_name}"),
+    TRUE ~ last_name),
+    team_name = "Matsumoto Yamaga") %>% 
+  arrange(desc(min_perc))
+
+glimpse(yamaga_minutes)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # all teams
 
 ## web-scrape
@@ -1654,7 +1892,7 @@ ggsave(plot = combined_plot, "../J-League 2020/output/VegaltaSendai_combplot.png
 # Matsumoto Yamaga
 
 ```{r fig.width=15, fig.height=8}
-combined_plot <- age_utility_plotter(df = jleague_age_utility_df, 
+combined_plot <- age_utility_plotter(df = yamaga_minutes, 
                     team_name = "Matsumoto Yamaga",
                     j_name = "松本山雅フットボールクラブ",
                     color_1 = "#005220", color_2 = "#016830",
@@ -1672,7 +1910,7 @@ ggsave(plot = combined_plot, "../J-League 2020/output/MatsumotoYamaga_combplot.p
 # Jubilo Iwata
 
 ```{r fig.width=15, fig.height=8}
-combined_plot <- age_utility_plotter(df = jleague_age_utility_df, 
+combined_plot <- age_utility_plotter(df = jubilo_minutes, 
                     team_name = "Jubilo Iwata",
                     j_name = "ジュビロ磐田",
                     color_1 = "#5693c1", color_2 = "#000000",
@@ -1723,5 +1961,16 @@ combined_plot
 ggsave(plot = combined_plot, "../J-League 2020/output/KashiwaReysol_combplot.png",
        height = 8, width = 15)
 ```
+
+
+
+
+
+
+
+
+
+
+
 
 
