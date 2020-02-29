@@ -1,6 +1,11 @@
-## Re-create goals, stats viz, etc. from the World Cup and beyond. (Using ggplot2, ggsoccer, and more)
+## Animate goals, Visualize stats, Video analyses, etc. from the World Cup, Premier League, Copa America, and beyond. (Using ggplot2, ggsoccer, and more)
 
 [Ryo Nakagawara | Twitter: `@R_by_Ryo`](https://twitter.com/R_by_Ryo)
+
+### Video Analyses
+
+- Analyzing Trent Alexander-Arnold <> Andy Robertson cross-field passes: [1](https://i.imgur.com/2PhehaS.png), [2](https://i.imgur.com/3V1W3pu.png), [3](https://i.imgur.com/SibyDsH.png), [4](https://i.imgur.com/wJq1Ojb.png)
+- FC Tokyo's 2nd goal vs. Shimizu S-Pulse (great example of a counterattack): [1](https://i.imgur.com/BC8iMuT.png), [2](https://i.imgur.com/VoZqV0G.png), [3](https://i.imgur.com/2U9CtUP.png), [4](https://i.imgur.com/01yefrE.png)
 
 ### Visualizing the Premier League (2019-2020)
 
@@ -58,6 +63,9 @@
 
 ## xG Match Summary
 <img src="https://i.imgur.com/K2AMWnG.png" width="600"/>
+
+## Player-Minutes Gantt Chart (Liverpool FC: 2015-2016 Season comparing Brendan Rodgers vs. Jürgen Klopp)
+<img src="https://i.imgur.com/aGsEj93.png" width="600"/>
 
 ## Pass Partner Plots: Total Completed Passes Into The Box Between All Players
 ![](https://i.imgur.com/J6LlWYb.png)
