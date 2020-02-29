@@ -7,6 +7,10 @@
 - Analyzing Trent Alexander-Arnold <> Andy Robertson cross-field passes: [1](https://i.imgur.com/2PhehaS.png), [2](https://i.imgur.com/3V1W3pu.png), [3](https://i.imgur.com/SibyDsH.png), [4](https://i.imgur.com/wJq1Ojb.png)
 - FC Tokyo's 2nd goal vs. Shimizu S-Pulse (great example of a counterattack): [1](https://i.imgur.com/BC8iMuT.png), [2](https://i.imgur.com/VoZqV0G.png), [3](https://i.imgur.com/2U9CtUP.png), [4](https://i.imgur.com/01yefrE.png)
 
+### Liverpool FC: xG Timelines, xG Shot Maps, & Match Notes/Thoughts
+
+- [Thread for 2019-2020 Premier League Season](https://twitter.com/R_by_Ryo/status/1175774705967452160)
+
 ### Visualizing the Premier League (2019-2020)
 
 - [Visualizing the Premier League So Far, Part 1: Overview with xPts Tables and xG Plots](https://ryo-n7.github.io/2019-11-21-visualize-EPL-part-1/)
