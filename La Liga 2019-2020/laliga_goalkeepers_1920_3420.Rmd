@@ -252,12 +252,12 @@ aitor_desc <- ""
 
 simon_desc <- ""
 
-lopez_desc <- ""
+oblak_desc <- ""
 ```
 
 
 
-```{r fig.width = 14, fig.height = 10}
+```{r fig.width = 16, fig.height = 10}
 laliga_goalkeeping_MD26_plot <- laliga_gk %>% 
   ggplot(aes(x = GSAA_perc, y = minPerSave)) +
   geom_vline(xintercept = 0) +
@@ -286,29 +286,29 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
   ## area labels
   ## LEFT
   annotate("text", family = "Roboto Condensed", fontface = "bold",
-           x = -0.12, y = 19, 
+           x = -0.17, y = 19, 
            hjust = 0, color = "red", size = 6,
            label = "Busy & Saving Less Than Average GK") +
   annotate("text", family = "Roboto Condensed", fontface = "bold",
-           x = -0.12, y = 54, 
+           x = -0.17, y = 58, 
            hjust = 0, color = "orange", size = 6,
            label = "Not Busy & Saving Less Than Average GK") +
   ## RIGHT
   annotate( # #7f7f00  #228B22 #CCCC00
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = 0.03, y = 54, 
+    x = 0.06, y = 58, 
     hjust = 0, color = "#228B22", size = 6,
     label = "Not Busy & Saving More Than Average GK") +
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = 0.03, y = 19, 
+    x = 0.06, y = 19, 
     hjust = 0, color = "#7f7f00", size = 6,
     label = "Busy & Saving More Than Average GK") +
   ## avg minutes per save
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
     x = -0.2, y = 33.5, 
-    hjust = 0, color = "grey20", size = 5,
+    hjust = 0, color = "grey20", size = 4.5,
     label = "Average: 34.92 Minutes per Save") +
   ## player data
   geom_point(aes(fill = factor(fillcol)), 
@@ -317,8 +317,8 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
                     guide = NULL) +
   geom_text_repel(
     data = laliga_gk %>% 
-      filter(!player %in% c("Alisson", "K. Arrizabalaga",
-                            "A. Gunn")),
+      filter(!player %in% c("J. Oblak", "A. Fernández",
+                            "U. Simón", "T. Courtois")),
     aes(label = player, family = "Roboto Condensed", 
         fontface = "bold", 
         segment.color = factor(fillcol)),
@@ -338,22 +338,29 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
   geom_mark_hull(
     aes(filter = player == "U. Simón",
         label = "Unai Simón (Athletic Bilbao)",
-        description = alisson_desc),
+        description = alisson_desc), #position = position_nudge(x = 2),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "#228B22", color = "#228B22", 
-    label.width = unit(120, 'mm'), label.buffer = unit(1, "mm"),
+    label.width = unit(100, 'mm'), label.buffer = unit(1, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") +
-  # Diego Lopez
-  # geom_mark_hull(
-  #   aes(filter = player == "D. López",
-  #       label = "Diego López (Espanyol)",
-  #       description = kepa_desc),
-  #   expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
-  #   con.colour = "orange", color = "orange",
-  #   label.width = unit(160, 'mm'), label.buffer = unit(15, "mm"),
-  #   label.family = "Roboto Condensed", label.fontsize = c(14, 12),
-  #   label.colour = "grey20", label.fill = "#ffe5cc") +
+  #annotate("label", x = 0.1, y = 45, fill = "#cce5cc", label = alisson_desc) +
+  # J. Oblak
+  geom_mark_hull(
+    aes(filter = player == "J. Oblak",
+        label = "Jan Oblak (Atletico Madrid)",
+        description = kepa_desc),
+    expand = unit(2.5, "mm"), con.cap = unit(0, "mm"), con.type = "straight",
+    con.colour = "orange", color = "orange", radius = unit(1, "mm"),
+    label.width = unit(100, 'mm'), label.buffer = unit(10, "mm"),
+    label.family = "Roboto Condensed", label.fontsize = c(14, 12),
+    label.colour = "grey20", label.fill = "#ffe5cc") +
+  geom_text(
+    data = laliga_gk %>%
+      filter(player == "T. Courtois"),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+    size = 5, color = "grey20",
+    nudge_x = -0.01, nudge_y = 1) +
   scale_x_continuous(labels = scales::percent,
                      breaks = seq(-0.2, 0.2, 0.05),
                      limits = c(-0.2, 0.23),
@@ -373,11 +380,11 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
                             Ryo Nakagawara, Twitter: @R_by_Ryo")) +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
-        plot.title = element_markdown(size = 20),
-        plot.subtitle = element_markdown(size = 16),
-        plot.caption = element_text(size = 14),
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 12))
+        plot.title = element_markdown(size = 22),
+        plot.subtitle = element_markdown(size = 18),
+        plot.caption = element_text(size = 16),
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
 
 laliga_goalkeeping_MD26_plot
 ```
@@ -390,7 +397,7 @@ laliga_goalkeeping_MD26_plot
 ```{r}
 ggsave(plot = laliga_goalkeeping_MD26_plot, 
        here::here("La Liga 2019-2020/output/laliga_goalkeeping_1920_MD26.png"),
-       height = 10, width = 14)
+       height = 10, width = 16)
 ```
 
 ```{r}
