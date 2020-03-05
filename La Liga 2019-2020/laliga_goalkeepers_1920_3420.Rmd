@@ -124,6 +124,11 @@ laliga_player_regular_goalkeeping_stats_MD26 <- laliga_player_regular_goalkeepin
   select(-firstname, -fname, -lastname, -allname)
 
 
+laliga_player_regular_goalkeeping_stats_MD26 %>% 
+  mutate(SoTAp90 = (SoTA / Min) * 90) %>% 
+  filter(Min >= 1080) %>% 
+  View()
+
 glimpse(laliga_player_regular_goalkeeping_stats_MD26)
 ```
 
@@ -169,9 +174,6 @@ saveRDS(laliga_player_goalkeeping_MD26_clean,
 laliga_player_goalkeeping_MD26_clean <- readRDS(
   file = glue("{here::here()}/data/laliga_player_goalkeeping_MD26_clean.RDS"))
 ```
-
-
-
 
 # plot
 
@@ -241,28 +243,17 @@ point_cols <- c("yellow" = "yellow", "red" = "red",
 ```
 
 
-```{r}
-alisson_desc <- "Alisson is proving to be the best goalkeeper this season with his 9.96 GSAA %, 83.3 Save %, 0.41 Goals Against per 90 all leading the Premier League by a considerable margin. Praise should also be given to his defenders who have only allowed opposition strikers to have 0.25 PSxG / Shot on Target, the lowest in the league."
-
-kepa_desc <- "Kepa is the least busiest keeper in the league having to only make a save every 50.49 minutes on average yet he has the 3rd worst GSAA in the league having given up 4.9 goals on shots that the post-shot model expected an average GK to save."
-
-gunn_desc <- "Angus Gunn was giving up a league-worst 2.5 Goals Against per 90 and -11.35 GSAA % before he was replaced after the horrendous 9-0 loss to Leicester City. His replacement Alex McCarthy has been doing much better with +6.6 GSAA % (3rd best in the league) and 1.31 Goals Against per 90!"
-```
-
 0.33 PSxG per Shot on Target 115 saves best in the league
 
 ```{r}
-aitor_desc <- "Aitor Fernandez has been having a stellar season preventing a otherwise woeful Levante team, who have the worst xGA & xG Difference in the league, from having to fight a relegation battle. Aitor is putting up 0.4 GSAA per 90 (1st) & +6.8 GSAA % (2nd), all the while being the busiest keeper in the league, forced to make a save every 20.3 minutes! He has also prevented 10.4 goals that the post-shot model expected an average GK to concede."
+aitor_desc <- "Aitor Fernández has been having a stellar season preventing an otherwise woeful Levante team, who have the worst xGA & xG Difference in the league, from having to fight a relegation battle. Aitor is putting up an impressive 0.4 GSAA per 90 (1st) & +6.8 GSAA % (2nd), all the while being the busiest keeper in the league, forced to make a save every 20.3 minutes! He has also prevented 10.4 goals that the post-shot model expected an average GK to concede."
 
-simon_desc <- "7.4 GSAA % best in the league, 5.2 GSAA (3rd best), 3rd best GA per 90 at 0.83, 72.9 Save % (4th best), 0.22 GSAA per 90 (2nd best)
-22 GA (3rd best behind Atleti and Real Madrid)
-If his teammates further forward could actually score goals the Basques would be in contention for an European spot.
-"
+simon_desc <- "Athletic Bilbao have conceded 22 goals this season, only Atlético Madrid & Real Madrid have conceded less, in large part due to the excellent performances of Unai Simón. With his strong numbers, +7.4 GSAA % (best in La Liga), 5.2 GSAA (3rd best), & 72.9% Save % (4th best) the Basques could be in contention for an European spot if they could figure out how to supplement their stout defense with more goals (tied 5th worst goals scored)."
 
-oblak_desc <- "The winner of the last 3 Zamora Trophies is having a slight down season, but only in comparison to his God-like form in the past few years. Oblak still has the 2nd best GA per 90 at 0.74 & 3rd best Save % of 73.6 in the league but he has given up 2.7 goals on shots that the post-shot model expected an average GK to save (5th worst)."
+oblak_desc <- "The winner of the last 4 Zamora Trophies is having a slight down season, but only in comparison to his God-like form in the past few years. Oblak still has the 2nd best GA per 90 at 0.74 & 3rd best Save % of 73.6 in the league but he has given up 2.7 goals on shots that the post-shot model expected an average GK to save (5th worst)."
 ```
 
-
+La Real & Real Betis are on 25 matches
 
 ```{r fig.width = 16, fig.height = 10}
 laliga_goalkeeping_MD26_plot <- laliga_gk %>% 
@@ -293,28 +284,28 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
   ## area labels
   ## LEFT
   annotate("text", family = "Roboto Condensed", fontface = "bold",
-           x = -0.17, y = 19, 
-           hjust = 0, color = "red", size = 6,
+           x = -0.075, y = 19, 
+           color = "red", size = 6,
            label = "Busy & Saving Less Than Average GK") +
   annotate("text", family = "Roboto Condensed", fontface = "bold",
-           x = -0.17, y = 58, 
-           hjust = 0, color = "orange", size = 6,
+           x = -0.075, y = 58, 
+           color = "orange", size = 6,
            label = "Not Busy & Saving Less Than Average GK") +
   ## RIGHT
   annotate( # #7f7f00  #228B22 #CCCC00
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = 0.06, y = 58, 
-    hjust = 0, color = "#228B22", size = 6,
+    x = 0.105, y = 58, 
+    color = "#228B22", size = 6,
     label = "Not Busy & Saving More Than Average GK") +
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = 0.06, y = 19, 
-    hjust = 0, color = "#7f7f00", size = 6,
+    x = 0.105, y = 19, 
+    color = "#7f7f00", size = 6,
     label = "Busy & Saving More Than Average GK") +
   ## avg minutes per save
   annotate(
     "text", family = "Roboto Condensed", fontface = "bold",
-    x = -0.12, y = 36.5, 
+    x = 0.125, y = 36, 
     hjust = 0, color = "grey20", size = 4.5,
     label = "Average: 34.92 Minutes per Save") +
   ## player data
@@ -325,37 +316,36 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
   geom_text_repel(
     data = laliga_gk %>% 
       filter(!player %in% c("J. Oblak", "A. Fernández",
-                            "U. Simón", "T. Courtois")),
+                            "U. Simón", "T. Courtois", "D. Soria")),
     aes(label = player, family = "Roboto Condensed", 
         fontface = "bold", 
         segment.color = factor(fillcol)),
-    min.segment.length = 0.3, seed = 15, size = 5,
+    min.segment.length = 0.5, seed = 15, size = 5,
     point.padding = 0.6, color = "grey20") +
   # Aitor Fernandez
   geom_mark_hull(
     aes(filter = player == "A. Fernández",
-        label = "Aitor Fernandez (Levante)",
+        label = "Aitor Fernández (Levante)",
         description = aitor_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "grey20", color = "grey20", 
-    label.width = unit(150, 'mm'), label.buffer = unit(1, "mm"),
+    label.width = unit(190, 'mm'), label.buffer = unit(1, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#FFFF66") +
   # Unai Simon
   geom_mark_hull(
     aes(filter = player == "U. Simón",
         label = "Unai Simón (Athletic Bilbao)",
-        description = alisson_desc), #position = position_nudge(x = 2),
+        description = simon_desc), #position = position_nudge(x = 2),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"),
     con.colour = "#228B22", color = "#228B22", 
-    label.width = unit(100, 'mm'), label.buffer = unit(1, "mm"),
+    label.width = unit(140, 'mm'), label.buffer = unit(1, "mm"),
     label.family = "Roboto Condensed", label.fontsize = c(14, 12),
     label.colour = "grey20", label.fill = "#cce5cc") +
-  #annotate("label", x = 0.1, y = 45, fill = "#cce5cc", label = alisson_desc) +
   # J. Oblak
   geom_mark_hull(
     aes(filter = player == "J. Oblak",
-        label = "Jan Oblak (Atletico Madrid)",
+        label = "Jan Oblak (Atlético Madrid)",
         description = oblak_desc),
     expand = unit(2.5, "mm"), con.cap = unit(0, "mm"), con.type = "straight",
     con.colour = "orange", color = "orange", radius = unit(1, "mm"),
@@ -368,6 +358,12 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
     aes(label = player, family = "Roboto Condensed", fontface = "bold"),
     size = 5, color = "grey20",
     nudge_x = -0.01, nudge_y = 1) +
+  geom_text(
+    data = laliga_gk %>%
+      filter(player == "D. Soria"),
+    aes(label = player, family = "Roboto Condensed", fontface = "bold"),
+    size = 5, color = "grey20",
+    nudge_x = -0.01, nudge_y = -0.3) +
   scale_x_continuous(labels = scales::percent,
                      breaks = seq(-0.15, 0.2, 0.05),
                      limits = c(-0.15, 0.21),
@@ -384,7 +380,7 @@ laliga_goalkeeping_MD26_plot <- laliga_gk %>%
        y = "Average Minutes per Save",
        caption = glue::glue("
                             Data: FBref | StatsBomb
-                            Ryo Nakagawara, Twitter: @R_by_Ryo")) +
+                            Graphic: Ryo Nakagawara (Twitter: @R_by_Ryo)")) +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
         plot.title = element_markdown(size = 22),
@@ -412,7 +408,7 @@ plot_logo <- add_logo(
   plot_path = here::here("La Liga 2019-2020/output/laliga_goalkeeping_1920_MD26.png"),
   logo_path = "https://upload.wikimedia.org/wikipedia/en/3/35/La_Liga.png",
   logo_position = "top right",
-  logo_scale = 9.5)
+  logo_scale = 17)
 
 plot_logo
 ```
